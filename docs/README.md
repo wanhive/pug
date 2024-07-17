@@ -1,14 +1,14 @@
 # Wanhive Pug
 
-Wanhive Pug is a physical computing library written in C++.
+Wanhive Pug is a secure and high-performance physical computing library coded in C++.
 
-This package is part of the Wanhive IoT Platform.
+This program is a part of the Wanhive IoT Platform.
 
 ## Features
 
-Access and control the GPIO headers of the single board computers (SBCs) from the user space. 
+Access and fully control GPIO pins on single board computers (SBCs) directly from the user space. 
  
-- Digital pins
+- Digital I/O pins
 - I2C
 - SPI
 - Terminal and UART
@@ -21,7 +21,7 @@ Access and control the GPIO headers of the single board computers (SBCs) from th
 
 # Installation
 
-Download the source tarball.
+Download the source archive.
 
 ```
 tar -xvzf <archive-name>

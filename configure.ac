@@ -25,6 +25,7 @@ AX_CXX_COMPILE_STDCXX(17, [noext], [mandatory])
 # Checks for libraries.
 LT_INIT
 AC_CHECK_LIB([i2c], [i2c_smbus_process_call], , [AC_MSG_ERROR([libi2c not found.])])
+# nm <lib>.so | grep <method_name>
 AC_CHECK_LIB([wanhive], [_ZNK7wanhive9Exception4whatEv], , [AC_MSG_ERROR([libwanhive not found.])])
 
 # Checks for header files.

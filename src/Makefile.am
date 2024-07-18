@@ -33,3 +33,5 @@ wanhivepugphydir=$(includedir)/wanhive/physical
 wanhivepugphy_HEADERS=$(WH_PHY_HDRS)
 wanhivepugdrivdir=$(includedir)/wanhive/driver
 wanhivepugdriv_HEADERS=$(WH_DRIV_HDRS)
+
+pkgconfig_DATA = wanhivepug.pc

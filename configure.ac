@@ -2,13 +2,13 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.71])
-AC_INIT([wanhive-pug], [0.0.1], [info@wanhive.com], , [www.wanhive.com])
+AC_INIT([wanhive-pug], [0.1.0], [info@wanhive.com], , [www.wanhive.com])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_SRCDIR([src/wanhive-pug.h])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_MACRO_DIRS([m4])
-
+PKG_INSTALLDIR
 
 # Library version
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
@@ -41,5 +41,5 @@ AC_TYPE_UINT8_T
 # Checks for library functions.
 AC_CHECK_FUNCS([memset])
 
-AC_CONFIG_FILES([Makefile docs/Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile docs/Makefile src/Makefile src/wanhivepug.pc])
 AC_OUTPUT

@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+pkgincludedir=@includedir@/wanhive
+
+Name: @PACKAGE@
+Description: Physical computing library
+URL: @PACKAGE_URL@
+Version: @VERSION@
+Requires.private: wanhive >= 10.0.0
+Cflags: -I${includedir}
+Libs: -L${libdir} -lwanhivepug
+Libs.private: -li2c

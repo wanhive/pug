@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.71])
-AC_INIT([wanhive-pug], [0.0.1], [info@wanhive.com])
+AC_INIT([wanhive-pug], [0.0.1], [info@wanhive.com], , [www.wanhive.com])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_SRCDIR([src/wanhive-pug.h])
@@ -14,7 +14,7 @@ AC_CONFIG_MACRO_DIRS([m4])
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 WH_LIB_VERSION='0:0:0'
 AC_SUBST([WH_LIB_VERSION])
-AC_DEFINE_UNQUOTED([WH_LIB_VERSION], ["${WH_LIB_VERSION}"], [Library's version number])
+AC_DEFINE_UNQUOTED([WH_LIB_VERSION], ["${WH_LIB_VERSION}"], [Library's version number.])
 
 # Checks for programs.
 AC_PROG_CXX([g++])

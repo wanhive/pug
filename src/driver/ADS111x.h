@@ -62,7 +62,7 @@ public:
 	/**
 	 * Destructor: closes the i2c bus.
 	 */
-	virtual ~ADS111x();
+	~ADS111x();
 	//-----------------------------------------------------------------
 	/**
 	 * Reads from the conversion register.

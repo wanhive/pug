@@ -9,8 +9,9 @@ WH_PHY_SRCS = physical/GPIO.cpp physical/I2C.cpp physical/SMBus.cpp \
 	physical/UART.cpp
 
 ## src/driver
-WH_DRIV_HDRS = driver/ADS111x.h driver/PCA9685.h
-WH_DRIV_SRCS = driver/ADS111x.cpp driver/PCA9685.cpp
+WH_DRIV_HDRS = driver/ADS111x.h driver/BME280.h driver/BME68x.h driver/PCA9685.h
+WH_DRIV_SRCS = driver/ADS111x.cpp driver/BME280.cpp driver/BME68x.cpp \
+	driver/PCA9685.cpp
 
 ## src/
 WH_PUG_TOP_HDRS = wanhive-pug.h

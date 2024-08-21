@@ -55,13 +55,13 @@ unsigned int baseRegister(unsigned int pin) {
 
 namespace wanhive {
 
-PCA9685::PCA9685(unsigned int bus, unsigned int device) :
-		SMBus(bus, device) {
+PCA9685::PCA9685(unsigned int bus, unsigned int address) :
+		SMBus(bus, address) {
 	setup();
 }
 
-PCA9685::PCA9685(const char *path, unsigned int device) :
-		SMBus(path, device) {
+PCA9685::PCA9685(const char *path, unsigned int address) :
+		SMBus(path, address) {
 	setup();
 }
 

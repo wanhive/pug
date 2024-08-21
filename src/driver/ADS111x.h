@@ -52,13 +52,13 @@ public:
 	 * @param bus i2c adapter's identifier
 	 * @param address device identifier (typically 0x48)
 	 */
-	ADS111x(unsigned int bus, unsigned int address = 0x48);
+	ADS111x(unsigned int bus, unsigned int address = I2C_ADDR);
 	/**
 	 * Constructor: initializes the driver.
 	 * @param path i2c adapter's pathname
 	 * @param address device identifier (typically 0x48)
 	 */
-	ADS111x(const char *path, unsigned int address = 0x48);
+	ADS111x(const char *path, unsigned int address = I2C_ADDR);
 	/**
 	 * Destructor: closes the i2c bus.
 	 */
@@ -113,6 +113,10 @@ public:
 	 */
 	static unsigned short encode(const ADS111xConfig &config) noexcept;
 public:
+	/**
+	 * Default I2C address
+	 */
+	static constexpr unsigned char I2C_ADDR = 0x48;
 	/**
 	 * Default configuration.
 	 */

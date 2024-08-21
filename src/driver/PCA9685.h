@@ -36,15 +36,15 @@ public:
 	/**
 	 * Constructor: initializes a PCA9685 driver.
 	 * @param bus i2c adapter's identifier
-	 * @param device device identifier (typically 0x40)
+	 * @param address device identifier (typically 0x40)
 	 */
-	PCA9685(unsigned int bus, unsigned int device = 0x40);
+	PCA9685(unsigned int bus, unsigned int address = I2C_ADDR);
 	/**
 	 * Constructor: initializes a PCA9685 driver.
 	 * @param path i2c adapter's pathname
-	 * @param device device identifier (typically 0x40)
+	 * @param address device identifier (typically 0x40)
 	 */
-	PCA9685(const char *path, unsigned int device = 0x40);
+	PCA9685(const char *path, unsigned int address = I2C_ADDR);
 	/**
 	 * Destructor: closes the i2c bus.
 	 */
@@ -121,6 +121,10 @@ public:
 private:
 	void setup();
 public:
+	/**
+	 * Default I2C address
+	 */
+	static constexpr unsigned char I2C_ADDR = 0x40;
 	/**
 	 * The maximum PWM value (exclusive).
 	 */

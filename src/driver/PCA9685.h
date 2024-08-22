@@ -27,8 +27,7 @@
 namespace wanhive {
 /**
  * User space PCA9685 driver.
- * @note PCA9685 is a 12-bit PWM/Servo driver which will drive up to 16 servos
- * with I2C. This module demonstrates the use of the SMBus interfaces.
+ * @note PCA9685 is a 16-channel, 12-bit resolution PWM controller.
  * @ref http://www.nxp.com/documents/data_sheet/PCA9685.pdf
  */
 class PCA9685: protected SMBus {
@@ -57,41 +56,40 @@ public:
 	 * enabled. If the value is >= PWM_MAX then full-on will be enabled. Every
 	 * value in between enables the PWM output.
 	 */
-	void pwmWrite(unsigned int pin, unsigned int value);
+	void pwmWrite(unsigned int pin, unsigned int value) const;
 	/**
 	 * Simple full-on and full-off control.
 	 * @param pin the pin number (0-15), ALL_PIN to select all.
 	 * @param value if value is false, full-off will be enabled. If value is
 	 * true, full-on will be enabled.
 	 */
-	void digitalWrite(unsigned int pin, bool value);
+	void digitalWrite(unsigned int pin, bool value) const;
 	/**
-	 * Sets the frequency of PWM signals (assumes internal oscillator).
-	 * @param frequency the frequency to set. Frequency will be capped to the
-	 * range [40, 1000] Hz.
+	 * Sets the frequency of PWM signals (with internal oscillator).
+	 * @param frequency PWM signal frequency, will be capped within the
+	 * [40, 1000] Hz range.
 	 * @return the frequency been set
 	 */
-	unsigned int setFrequency(unsigned int frequency);
+	unsigned int setFrequency(unsigned int frequency) const;
 	/**
-	 * Restarts the PCA9685 module.
+	 * Restarts the device.
 	 */
-	void restart();
+	void restart() const;
 	/**
-	 * Puts the module into sleep mode.
+	 * Puts the device into sleep mode.
 	 */
-	void sleep();
+	void sleep() const;
 	/**
-	 * Wakes up the module.
+	 * Wakes up the device from sleep mode.
 	 */
-	void wakeUp();
+	void wakeUp() const;
 	/**
-	 * Writes the on and off ticks manually to a pin (deactivates full-on and
-	 * full-off).
+	 * Writes the on and off ticks to a pin (deactivates full-on and full-off).
 	 * @param pin the pin number (0-15), ALL_PIN to select all.
 	 * @param on the on tick
 	 * @param off the off tick
 	 */
-	void write(unsigned int pin, unsigned short on, unsigned short off);
+	void write(unsigned int pin, unsigned short on, unsigned short off) const;
 	/**
 	 * Reads both on and off registers as 16 bit of data. To get PWM mask each
 	 * value with 0xFFF. To get full-on or full-off bit mask with 0x1000.
@@ -99,27 +97,27 @@ public:
 	 * @param on the on register value
 	 * @param off the off register value
 	 */
-	void read(unsigned int pin, unsigned short &on, unsigned short &off);
+	void read(unsigned int pin, unsigned short &on, unsigned short &off) const;
 	/**
 	 * Activates or deactivates full-on.
 	 * @param pin the pin number (0-15), ALL_PIN to select all.
 	 * @param flag true for full-on, false for PWM
 	 */
-	void fullOn(unsigned int pin, bool flag);
+	void fullOn(unsigned int pin, bool flag) const;
 	/**
 	 * Activates or deactivates full-off.
 	 * @param pin the pin number (0-15), ALL_PIN to select all.
 	 * @param flag true for full-off, false for PWM or full-on
 	 */
-	void fullOff(unsigned int pin, bool flag);
+	void fullOff(unsigned int pin, bool flag) const;
 	/**
 	 * Sets up the output mode.
 	 * @param invert true to invert the output logic state, false otherwise
 	 * @param openDrain true for open drain, false for totem-pole
 	 */
-	void setOutputMode(bool invert, bool openDrain);
+	void setOutputMode(bool invert, bool openDrain) const;
 private:
-	void setup();
+	void setup() const;
 public:
 	/**
 	 * Default I2C address

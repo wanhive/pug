@@ -69,7 +69,7 @@ PCA9685::~PCA9685() noexcept {
 
 }
 
-void PCA9685::pwmWrite(unsigned int pin, unsigned int value) {
+void PCA9685::pwmWrite(unsigned int pin, unsigned int value) const {
 	if (value >= PWM_MAX) {
 		fullOn(pin, true);
 	} else if (value > 0) {
@@ -79,7 +79,7 @@ void PCA9685::pwmWrite(unsigned int pin, unsigned int value) {
 	}
 }
 
-void PCA9685::digitalWrite(unsigned int pin, bool value) {
+void PCA9685::digitalWrite(unsigned int pin, bool value) const {
 	if (value) {
 		fullOn(pin, true);
 	} else {
@@ -87,7 +87,7 @@ void PCA9685::digitalWrite(unsigned int pin, bool value) {
 	}
 }
 
-unsigned int PCA9685::setFrequency(unsigned int frequency) {
+unsigned int PCA9685::setFrequency(unsigned int frequency) const {
 	/*
 	 * Using the internal oscillator
 	 * Limit the frequency to the range [MIN_FREQUENCY, MAX_FREQUENCY]
@@ -128,7 +128,7 @@ unsigned int PCA9685::setFrequency(unsigned int frequency) {
 	return frequency;
 }
 
-void PCA9685::restart() {
+void PCA9685::restart() const {
 	unsigned char state;
 	SMBus::read(MODE1_REG, state);
 	if (state & RESTART_MASK) {
@@ -142,14 +142,14 @@ void PCA9685::restart() {
 	SMBus::write(MODE1_REG, state);
 }
 
-void PCA9685::sleep() {
+void PCA9685::sleep() const {
 	unsigned char state;
 	SMBus::read(MODE1_REG, state);
 	state |= SLEEP_MASK;
 	SMBus::write(MODE1_REG, state);
 }
 
-void PCA9685::wakeUp() {
+void PCA9685::wakeUp() const {
 	unsigned char state;
 	SMBus::read(MODE1_REG, state);
 	state &= ~SLEEP_MASK;
@@ -157,7 +157,8 @@ void PCA9685::wakeUp() {
 	Timer::sleep(1);
 }
 
-void PCA9685::write(unsigned int pin, unsigned short on, unsigned short off) {
+void PCA9685::write(unsigned int pin, unsigned short on,
+		unsigned short off) const {
 	//Use only the lowest 12 bits, clear the full-on and full-off bits.
 	on &= 0x0FFF;
 	off &= 0x0FFF;
@@ -168,13 +169,14 @@ void PCA9685::write(unsigned int pin, unsigned short on, unsigned short off) {
 	SMBus::write(reg + 2, off); //LEDX_OFF
 }
 
-void PCA9685::read(unsigned int pin, unsigned short &on, unsigned short &off) {
+void PCA9685::read(unsigned int pin, unsigned short &on,
+		unsigned short &off) const {
 	auto reg = baseRegister(pin);
 	SMBus::read(reg, on);
 	SMBus::read(reg + 2, off);
 }
 
-void PCA9685::fullOn(unsigned int pin, bool flag) {
+void PCA9685::fullOn(unsigned int pin, bool flag) const {
 	auto reg = baseRegister(pin) + 1; //LEDX_ON_H
 	unsigned char state;
 	SMBus::read(reg, state);
@@ -187,7 +189,7 @@ void PCA9685::fullOn(unsigned int pin, bool flag) {
 	}
 }
 
-void PCA9685::fullOff(unsigned int pin, bool flag) {
+void PCA9685::fullOff(unsigned int pin, bool flag) const {
 	auto reg = baseRegister(pin) + 3; //LEDX_OFF_H
 	unsigned char state;
 	SMBus::read(reg, state);
@@ -195,7 +197,7 @@ void PCA9685::fullOff(unsigned int pin, bool flag) {
 	SMBus::write(reg, state);
 }
 
-void PCA9685::setOutputMode(bool invert, bool openDrain) {
+void PCA9685::setOutputMode(bool invert, bool openDrain) const {
 	constexpr unsigned char TOTEMPOLE_MASK = 0x04;
 	unsigned char state;
 	SMBus::read(MODE2_REG, state);
@@ -215,7 +217,7 @@ void PCA9685::setOutputMode(bool invert, bool openDrain) {
 	SMBus::write(MODE2_REG, state);
 }
 
-void PCA9685::setup() {
+void PCA9685::setup() const {
 	unsigned char state;
 	SMBus::read(MODE1_REG, state);
 	//Enable register auto-increment

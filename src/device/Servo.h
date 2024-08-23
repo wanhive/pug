@@ -20,9 +20,9 @@
  *
  */
 
-#ifndef WH_DRIVER_SERVO_H_
-#define WH_DRIVER_SERVO_H_
-#include "PCA9685.h"
+#ifndef WH_DEVICE_SERVO_H_
+#define WH_DEVICE_SERVO_H_
+#include "../driver/PCA9685.h"
 
 namespace wanhive {
 /**
@@ -65,4 +65,4 @@ public:
 
 } /* namespace wanhive */
 
-#endif /* WH_DRIVER_SERVO_H_ */
+#endif /* WH_DEVICE_SERVO_H_ */

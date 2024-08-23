@@ -21,6 +21,7 @@
  */
 
 #include "Servo.h"
+
 #ifndef WH_SERVO_REFRESH_RATE
 #define WH_SERVO_REFRESH_RATE 50U
 #endif

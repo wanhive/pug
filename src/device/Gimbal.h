@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef WH_DRIVER_GIMBAL_H_
-#define WH_DRIVER_GIMBAL_H_
+#ifndef WH_DEVICE_GIMBAL_H_
+#define WH_DEVICE_GIMBAL_H_
 #include "Servo.h"
 
 namespace wanhive {
@@ -98,4 +98,4 @@ private:
 
 } /* namespace wanhive */
 
-#endif /* WH_DRIVER_GIMBAL_H_ */
+#endif /* WH_DEVICE_GIMBAL_H_ */

@@ -54,8 +54,7 @@ I2C::I2C(unsigned int bus) {
 
 I2C::I2C(unsigned int bus, unsigned int address) {
 	char buf[64];
-	I2CDevice device = { address, false, false };
-	open(pathName(bus, buf, sizeof(buf)), device);
+	open(pathName(bus, buf, sizeof(buf)), { address, false, false });
 }
 
 I2C::I2C(unsigned int bus, const I2CDevice &device) {
@@ -81,6 +80,10 @@ I2C::~I2C() {
 
 unsigned long I2C::capabilities() const noexcept {
 	return functions;
+}
+
+void I2C::select(unsigned int address) const {
+	select( { address, false, false });
 }
 
 void I2C::select(const I2CDevice &device) const {

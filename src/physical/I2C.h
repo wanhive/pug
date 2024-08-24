@@ -87,6 +87,11 @@ public:
 	unsigned long capabilities() const noexcept;
 	/**
 	 * Selects a device for communication.
+	 * @param address device's 7-bit address
+	 */
+	void select(unsigned int address) const;
+	/**
+	 * Selects a device for communication.
 	 * @param device device's properties
 	 */
 	void select(const I2CDevice &device) const;

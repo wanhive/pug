@@ -29,12 +29,16 @@ namespace wanhive {
  * I2C device properties
  */
 struct I2CDevice {
-	unsigned int address { 0 }; //Slave address
-	bool tenbit { false }; //Enable ten bit address
-	bool pec { false }; //Enable packet error checking
+	/*! Slave address */
+	unsigned int address { 0 };
+	/*! Enable ten bit address */
+	bool tenbit { false };
+	/*! Enable packet error checking */
+	bool pec { false };
 };
 /**
- * User space I2C bus driver
+ * User space I2C bus driver.
+ * @ref https://www.kernel.org/doc/html/latest/i2c/
  */
 class I2C: protected File {
 public:
@@ -69,7 +73,7 @@ public:
 	/**
 	 * Constructor: opens an i2c device.
 	 * @param path adapter's pathname
-	 * @param device device's specification
+	 * @param device device's properties
 	 */
 	I2C(const char *path, const I2CDevice &device);
 	/**
@@ -81,6 +85,11 @@ public:
 	 * @return bitmap of adapter's capabilities
 	 */
 	unsigned long capabilities() const noexcept;
+	/**
+	 * Selects a device for communication.
+	 * @param device device's properties
+	 */
+	void select(const I2CDevice &device) const;
 private:
 	void open(const char *path);
 	void open(const char *path, const I2CDevice &device);

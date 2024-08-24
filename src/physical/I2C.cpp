@@ -83,6 +83,18 @@ unsigned long I2C::capabilities() const noexcept {
 	return functions;
 }
 
+void I2C::select(const I2CDevice &device) const {
+	if (::ioctl(File::get(), I2C_TENBIT, (device.tenbit ? 1 : 0)) == -1) {
+		throw SystemException();
+	} else if (::ioctl(File::get(), I2C_PEC, (device.pec ? 1 : 0)) == -1) {
+		throw SystemException();
+	} else if (::ioctl(File::get(), I2C_SLAVE, device) == -1) {
+		throw SystemException();
+	} else {
+		//success
+	}
+}
+
 void I2C::open(const char *path) {
 	try {
 		File::open(path, O_RDWR);
@@ -104,15 +116,7 @@ void I2C::open(const char *path) {
 void I2C::open(const char *path, const I2CDevice &device) {
 	try {
 		open(path);
-		if (device.tenbit && ::ioctl(File::get(), I2C_TENBIT, 1) == -1) {
-			throw SystemException();
-		} else if (device.pec && ::ioctl(File::get(), I2C_PEC, 1) == -1) {
-			throw SystemException();
-		} else if (::ioctl(File::get(), I2C_SLAVE, device) == -1) {
-			throw SystemException();
-		} else {
-			//success
-		}
+		select(device);
 	} catch (const BaseException &e) {
 		File::close();
 		throw;

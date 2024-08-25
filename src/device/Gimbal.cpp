@@ -25,11 +25,11 @@
 namespace wanhive {
 
 Gimbal::Gimbal(unsigned int bus, unsigned int address) :
-		Servo(bus, address) {
+		PWMController(bus, address) {
 }
 
 Gimbal::Gimbal(const char *path, unsigned int address) :
-		Servo(path, address) {
+		PWMController(path, address) {
 
 }
 
@@ -39,21 +39,21 @@ Gimbal::~Gimbal() {
 
 void Gimbal::pan(unsigned int value) {
 	if (value != axis.pan && value <= PAN_MAX) {
-		pulse(PAN_CTRL, ((value / 90.0f) + 0.5f));
+		servo(PAN_CTRL, ((value / 90.0f) + 0.5f));
 		axis.pan = value;
 	}
 }
 
 void Gimbal::roll(unsigned int value) {
 	if (value != axis.roll && value <= ROLL_MAX) {
-		pulse(ROLL_CTRL, ((value / 90.0f) + 0.5f));
+		servo(ROLL_CTRL, ((value / 90.0f) + 0.5f));
 		axis.roll = value;
 	}
 }
 
 void Gimbal::tilt(unsigned int value) {
 	if (value != axis.tilt && value <= TILT_MAX) {
-		pulse(TILT_CTRL, ((value / 90.0f) + 0.5f));
+		servo(TILT_CTRL, ((value / 90.0f) + 0.5f));
 		axis.tilt = value;
 	}
 }
@@ -62,6 +62,14 @@ void Gimbal::center() {
 	pan(90);
 	roll(90);
 	tilt(90);
+}
+
+void Gimbal::alert(bool on) const {
+	if (on) {
+		high(ALERT_CTRL);
+	} else {
+		low(ALERT_CTRL);
+	}
 }
 
 } /* namespace wanhive */

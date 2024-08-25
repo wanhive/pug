@@ -22,28 +22,28 @@
 
 #ifndef WH_DEVICE_GIMBAL_H_
 #define WH_DEVICE_GIMBAL_H_
-#include "Servo.h"
+#include "PWMController.h"
 
 namespace wanhive {
 /**
  * 3-axis servo gimbal controller.
  * @note Uses standard servo to fix the orientation with 1 degree accuracy
- * @note Default PCA9685 pin map: Pan(0), Roll(2), Tilt(4)
+ * @note Default PCA9685 pin map: Pan(0), Roll(2), Tilt(4), Alert (6)
  */
-class Gimbal: protected Servo {
+class Gimbal: protected PWMController {
 public:
 	/**
 	 * Constructor: initializes the controller.
 	 * @param bus i2c adapter's identifier
 	 * @param address device identifier
 	 */
-	Gimbal(unsigned int bus, unsigned int address = PCA9685::I2C_ADDR);
+	Gimbal(unsigned int bus, unsigned int address = I2C_ADDR);
 	/**
 	 * Constructor: initializes the controller.
 	 * @param path i2c adapter's pathname
 	 * @param address device identifier
 	 */
-	Gimbal(const char *path, unsigned int address = PCA9685::I2C_ADDR);
+	Gimbal(const char *path, unsigned int address = I2C_ADDR);
 	/**
 	 * Destructor: closes the i2c bus.
 	 */
@@ -68,6 +68,11 @@ public:
 	 * Centers (90 degrees) all the three axes.
 	 */
 	void center();
+	/**
+	 * Sets an alert (e.g. active buzzer).
+	 * @param on true to activate, false to deactivate
+	 */
+	void alert(bool on) const;
 public:
 	/*! Minimum pan angle in degrees */
 	static constexpr unsigned int PAN_MIN = 0;
@@ -88,6 +93,8 @@ public:
 	static constexpr unsigned int ROLL_CTRL = 2;
 	/*! Tilt control pin */
 	static constexpr unsigned int TILT_CTRL = 4;
+	/*! Alert control pin */
+	static constexpr unsigned int ALERT_CTRL = 6;
 private:
 	struct {
 		unsigned int pan { 360 };

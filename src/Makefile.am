@@ -15,8 +15,8 @@ WH_DRIV_SRCS = driver/ADS111x.cpp driver/BME280.cpp driver/BME68x.cpp \
 	driver/PCA9685.cpp
 
 ## src/device
-WH_DEVICE_HDRS = device/Gimbal.h device/Servo.h
-WH_DEVICE_SRCS = device/Gimbal.cpp device/Servo.cpp
+WH_DEVICE_HDRS = device/Gimbal.h device/PWMController.h device/Servo.h
+WH_DEVICE_SRCS = device/Gimbal.cpp device/PWMController.cpp device/Servo.cpp
 
 ## src/
 WH_PUG_TOP_HDRS = wanhive-pug.h

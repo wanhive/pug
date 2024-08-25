@@ -28,13 +28,12 @@ namespace {
 
 constexpr unsigned char MODE1_REG = 0x0;
 constexpr unsigned char MODE2_REG = 0x01;
+constexpr unsigned char PRESCALE_REG = 0xFE;
 
 constexpr unsigned char RESTART_MASK = 0x80;
 constexpr unsigned char SLEEP_MASK = 0x10;
 constexpr unsigned char AI_MASK = 0x20;
-
 constexpr unsigned char INVRT_MASK = 0x10;
-
 constexpr unsigned char FULL_MASK = 0x10;
 
 /**
@@ -87,21 +86,29 @@ void PCA9685::digitalWrite(unsigned int pin, bool value) const {
 	}
 }
 
+unsigned int PCA9685::getFrequency() const {
+	unsigned int prescale = SMBus::readByte(PRESCALE_REG);
+	return (((double) OSC_CLOCK / (PWM_MAX * (prescale + 1))) + 0.5);
+}
+
 unsigned int PCA9685::setFrequency(unsigned int frequency) const {
 	/*
 	 * Using the internal oscillator
 	 * Limit the frequency to the range [MIN_FREQUENCY, MAX_FREQUENCY]
 	 * The data sheet says 24Hz to 1526Hz
 	 */
-	constexpr double OSCILLATOR_FREQUENCY = 25000000;
 	constexpr unsigned char PRESCALE_MIN = 0x03;
-	constexpr unsigned char PRESCALE_REG = 0xFE;
-	frequency = (
-			frequency < MIN_FREQUENCY ?
-					MIN_FREQUENCY :
-					(frequency > MAX_FREQUENCY ? MAX_FREQUENCY : frequency));
-	unsigned char prescale = (unsigned char) (((OSCILLATOR_FREQUENCY
-			/ (frequency * 4096)) + 0.5) - 1);
+
+	if (frequency < MIN_FREQUENCY) {
+		frequency = MIN_FREQUENCY;
+	} else if (frequency > MAX_FREQUENCY) {
+		frequency = MAX_FREQUENCY;
+	} else {
+		//OK
+	}
+
+	auto prescale = (unsigned char) ((((double) OSC_CLOCK
+			/ (frequency * PWM_MAX)) + 0.5) - 1);
 
 	if (prescale < PRESCALE_MIN) { //Just in case
 		prescale = PRESCALE_MIN;

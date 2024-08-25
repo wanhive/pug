@@ -28,6 +28,7 @@ namespace wanhive {
 /**
  * User space PCA9685 driver.
  * @note PCA9685 is a 16-channel, 12-bit resolution PWM controller.
+ * @note Supports internal oscillator only.
  * @ref http://www.nxp.com/documents/data_sheet/PCA9685.pdf
  */
 class PCA9685: protected SMBus {
@@ -65,10 +66,14 @@ public:
 	 */
 	void digitalWrite(unsigned int pin, bool value) const;
 	/**
-	 * Sets the frequency of PWM signals (with internal oscillator).
-	 * @param frequency PWM signal frequency, will be capped within the
-	 * [40, 1000] Hz range.
-	 * @return the frequency been set
+	 * Reads the output modulation frequency (with internal oscillator).
+	 * @return current output frequency in Hz
+	 */
+	unsigned int getFrequency() const;
+	/**
+	 * Sets the output modulation frequency (with internal oscillator).
+	 * @param frequency desired output frequency in Hz
+	 * @return output frequency been set
 	 */
 	unsigned int setFrequency(unsigned int frequency) const;
 	/**
@@ -132,13 +137,17 @@ public:
 	 */
 	static constexpr unsigned int ALL_PIN = 16;
 	/**
-	 * Minimum allowed frequency.
+	 * Minimum allowed output modulation frequency (Hz).
 	 */
 	static constexpr unsigned int MIN_FREQUENCY = 40;
 	/**
-	 * Maximum allowed frequency.
+	 * Maximum allowed output modulation frequency (Hz).
 	 */
 	static constexpr unsigned int MAX_FREQUENCY = 1000;
+	/**
+	 * Internal oscillator's frequency.
+	 */
+	static constexpr unsigned int OSC_CLOCK = 25000000;
 };
 
 } /* namespace wanhive */

@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **PCA9685::getFrequency** method to read the output modulation frequency value (Hz).
+- **PWM** class for digital, pwm, and servo outputs.
+
+### Changed
+
+- 3-axis Gimbal controller re-implementation.
+
+### Removed
+
+- Redundant Servo class (replaced with the PWM class which offers better features).
 
 ## [0.4.0] - 2024-08-25
 

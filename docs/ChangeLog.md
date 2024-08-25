@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **PCA9685::getFrequency** method to read the update modulation frequency value (Hz).
+- **PCA9685::getFrequency** method to read the output modulation frequency value (Hz).
 
 ## [0.4.0] - 2024-08-25
 

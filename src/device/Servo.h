@@ -27,6 +27,8 @@
 namespace wanhive {
 /**
  * Servo motor controller
+ * @deprecated will be removed in the next release. PWMController offers
+ * wider range of features than this class.
  */
 class Servo: protected PCA9685 {
 public:

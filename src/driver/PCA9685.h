@@ -137,19 +137,11 @@ public:
 	 */
 	static constexpr unsigned int ALL_PIN = 16;
 	/**
-<<<<<<< HEAD
-	 * Minimum allowed output frequency (Hz).
-	 */
-	static constexpr unsigned int MIN_FREQUENCY = 40;
-	/**
-	 * Maximum allowed output frequency (Hz).
-=======
 	 * Minimum allowed output modulation frequency (Hz).
 	 */
 	static constexpr unsigned int MIN_FREQUENCY = 40;
 	/**
 	 * Maximum allowed output modulation frequency (Hz).
->>>>>>> dev
 	 */
 	static constexpr unsigned int MAX_FREQUENCY = 1000;
 	/**

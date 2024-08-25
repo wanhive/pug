@@ -1,5 +1,5 @@
 /*
- * PWMController.cpp
+ * PWM.cpp
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -20,7 +20,7 @@
  *
  */
 
-#include "PWMController.h"
+#include "PWM.h"
 #include <wanhive/base/common/Exception.h>
 
 #ifndef WH_PWM_FREQUENCY
@@ -32,39 +32,38 @@
 
 namespace wanhive {
 
-const unsigned int PWMController::FREQUENCY = WH_PWM_FREQUENCY;
-const float PWMController::SERVO_CENTER = WH_SERVO_NEUTRAL_PULSE;
+const unsigned int PWM::FREQUENCY = WH_PWM_FREQUENCY;
+const float PWM::SERVO_CENTER = WH_SERVO_NEUTRAL_PULSE;
 
-PWMController::PWMController(unsigned int bus, unsigned int address) :
+PWM::PWM(unsigned int bus, unsigned int address) :
 		PCA9685(bus, address) {
 	setFrequency(FREQUENCY);
 }
 
-PWMController::PWMController(const char *path, unsigned int address) :
+PWM::PWM(const char *path, unsigned int address) :
 		PCA9685(path, address) {
 	setFrequency(FREQUENCY);
 }
 
-PWMController::~PWMController() {
+PWM::~PWM() {
 
 }
 
-void PWMController::servo(unsigned int pin, float pulse) const {
+void PWM::servo(unsigned int pin, float pulse) const {
 	int value = ((PWM_MAX * (pulse * FREQUENCY / 1000.0f)) + 0.5f);
 	value = (value >= 0) ? value : 0;
 	pwmWrite(pin, value);
 }
 
-void PWMController::high(unsigned int pin) const {
+void PWM::high(unsigned int pin) const {
 	digitalWrite(pin, true);
 }
 
-void PWMController::low(unsigned int pin) const {
+void PWM::low(unsigned int pin) const {
 	digitalWrite(pin, false);
 }
 
-void PWMController::pulse(unsigned int pin, unsigned int delay,
-		unsigned int duty) const {
+void PWM::pulse(unsigned int pin, unsigned int delay, unsigned int duty) const {
 	if (delay > 100 || duty > 100) {
 		throw Exception(EX_ARGUMENT);
 	}

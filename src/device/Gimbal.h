@@ -22,7 +22,7 @@
 
 #ifndef WH_DEVICE_GIMBAL_H_
 #define WH_DEVICE_GIMBAL_H_
-#include "PWMController.h"
+#include "PWM.h"
 
 namespace wanhive {
 /**
@@ -30,7 +30,7 @@ namespace wanhive {
  * @note Uses standard servo to fix the orientation with 1 degree accuracy
  * @note Default PCA9685 pin map: Pan(0), Roll(2), Tilt(4), Alert (6)
  */
-class Gimbal: protected PWMController {
+class Gimbal: protected PWM {
 public:
 	/**
 	 * Constructor: initializes the controller.

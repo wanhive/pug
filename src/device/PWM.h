@@ -1,5 +1,5 @@
 /*
- * PWMController.h
+ * PWM.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef WH_DEVICE_PWMCONTROLLER_H_
-#define WH_DEVICE_PWMCONTROLLER_H_
+#ifndef WH_DEVICE_PWM_H_
+#define WH_DEVICE_PWM_H_
 #include "../driver/PCA9685.h"
 
 namespace wanhive {
@@ -29,24 +29,24 @@ namespace wanhive {
  * PWM controller with a fixed output modulation frequency.
  * @note Produces servo/digital/pwm outputs
  */
-class PWMController: protected PCA9685 {
+class PWM: protected PCA9685 {
 public:
 	/**
 	 * Constructor: initializes the controller and sets it's frequency.
 	 * @param bus i2c adapter's identifier
 	 * @param address device identifier
 	 */
-	PWMController(unsigned int bus, unsigned int address = I2C_ADDR);
+	PWM(unsigned int bus, unsigned int address = I2C_ADDR);
 	/**
 	 * Constructor: initializes the controller and sets it's frequency.
 	 * @param path adapter's pathname
 	 * @param address device identifier
 	 */
-	PWMController(const char *path, unsigned int address = I2C_ADDR);
+	PWM(const char *path, unsigned int address = I2C_ADDR);
 	/**
 	 * Destructor: closes the i2c bus.
 	 */
-	~PWMController();
+	~PWM();
 	/**
 	 * Applies pulse of a given width to the servo motor's control wire.
 	 * @param pin the pin number (0-15)
@@ -86,4 +86,4 @@ public:
 
 } /* namespace wanhive */
 
-#endif /* WH_DEVICE_PWMCONTROLLER_H_ */
+#endif /* WH_DEVICE_PWM_H_ */

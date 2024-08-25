@@ -25,11 +25,11 @@
 namespace wanhive {
 
 Gimbal::Gimbal(unsigned int bus, unsigned int address) :
-		PWMController(bus, address) {
+		PWM(bus, address) {
 }
 
 Gimbal::Gimbal(const char *path, unsigned int address) :
-		PWMController(path, address) {
+		PWM(path, address) {
 
 }
 

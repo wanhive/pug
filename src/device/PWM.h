@@ -26,7 +26,7 @@
 
 namespace wanhive {
 /**
- * PWM controller with a fixed output modulation frequency.
+ * PWM controller with a fixed output modulation frequency (50 Hz).
  * @note Produces servo/digital/pwm outputs
  */
 class PWM: protected PCA9685 {
@@ -64,10 +64,10 @@ public:
 	 */
 	void low(unsigned int pin) const;
 	/**
-	 * Sets up PWM output (turn-on time and duty cycle).
+	 * Sets PWM output (turn-on time and duty cycle).
 	 * @param pin the pin number (0-15)
 	 * @param delay turn-on time (%)
-	 * @param duty PWM duty cycle (%)
+	 * @param duty duty cycle (%)
 	 */
 	void pulse(unsigned int pin, unsigned int delay, unsigned int duty) const;
 private:

@@ -55,17 +55,34 @@ enum class StopBits {
  * UART configuration data
  */
 struct UARTConfig {
-	speed_t baud { B9600 }; //Baud rate
-	FrameBits bits { FrameBits::BITS_8 }; //Data bits
-	Parity parity { Parity::NONE }; //Parity
-	StopBits stop { StopBits::STOP_1 }; //Stop bits
-	bool flow { false }; //Hardware flow control
-	bool block { true }; //Blocking IO
+	/*! Baud rate */
+	speed_t baud { B9600 };
+	/*! Data bits */
+	FrameBits bits { FrameBits::BITS_8 };
+	/*! Parity */
+	Parity parity { Parity::NONE };
+	/*! Stop bits */
+	StopBits stop { StopBits::STOP_1 };
+	/*! Hardware flow control */
+	bool flow { false };
+	/*! Blocking IO */
+	bool block { true };
 };
 
+/**
+ * UART (universal asynchronous receiver-transmitter) driver.
+ */
 class UART: protected Terminal {
 public:
+	/**
+	 * Constructor: opens an UART device.
+	 * @param path device's pathname
+	 * @param cfg device's configuration data
+	 */
 	UART(const char *path, const UARTConfig &cfg);
+	/**
+	 * Destructor: restores the device's configuration.
+	 */
 	~UART();
 private:
 	void configure(const UARTConfig &cfg) const;

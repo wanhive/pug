@@ -28,7 +28,7 @@
 
 namespace wanhive {
 /**
- * GPIO handler
+ * GPIO interface for user space.
  */
 class GPIO {
 public:
@@ -131,7 +131,6 @@ public:
 	//-----------------------------------------------------------------
 	/**
 	 * For debugging: prints device's information.
-	 * @param path pathname of the gpio device
 	 */
 	void printInfo() const noexcept;
 	/**

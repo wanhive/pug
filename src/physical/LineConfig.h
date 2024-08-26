@@ -84,8 +84,10 @@ enum class LineClock {
  * Debounce settings
  */
 struct LineDebounce {
-	bool on { false }; // enable or disable
-	unsigned int period { 0 }; //debounce period in microseconds
+	/*! Enabled or disabled */
+	bool on { false };
+	/*! Debounce period in microseconds */
+	unsigned int period { 0 };
 };
 
 /**

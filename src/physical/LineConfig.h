@@ -92,13 +92,21 @@ struct LineDebounce {
  * Line configuration
  */
 struct LineConfig {
+	/*! IO direction */
 	LineDirection direction { LineDirection::INPUT };
+	/*! Active state */
 	LineState state { LineState::ACTIVE_HIGH };
+	/*! Drive type */
 	LineDrive drive { LineDrive::NONE };
+	/*! Line bias type */
 	LineBias bias { LineBias::NONE };
+	/*! Line events for monitoring */
 	LineEvent event { LineEvent::NONE };
+	/*! Clock type for time-stamp generation */
 	LineClock clock { LineClock::NONE };
+	/*! Debounce setting */
 	LineDebounce debounce;
+	/*! Reports line's busy state */
 	bool busy { false };
 };
 

@@ -65,9 +65,10 @@ public:
 	 */
 	void tilt(unsigned int value);
 	/**
-	 * Centers (90 degrees) all the three axes.
+	 * Resets the gimbal: centers (90 degrees) all the three axes and
+	 * turns off the alert.
 	 */
-	void center();
+	void reset();
 	/**
 	 * Sets an alert (e.g. active buzzer).
 	 * @param on true to activate, false to deactivate

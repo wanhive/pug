@@ -58,10 +58,11 @@ void Gimbal::tilt(unsigned int value) {
 	}
 }
 
-void Gimbal::center() {
+void Gimbal::reset() {
 	pan(90);
 	roll(90);
 	tilt(90);
+	alert(false);
 }
 
 void Gimbal::alert(bool on) const {

@@ -1,5 +1,5 @@
 /*
- * wanhive-pug.h
+ * all-headers.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -20,26 +20,22 @@
  *
  */
 
-#ifndef WH_PUG_H_
-#define WH_PUG_H_
+#ifndef WH_PUG_ALL_HEADERS_H_
+#define WH_PUG_ALL_HEADERS_H_
 
-/*
- * Physical computing interfaces
- */
-#include "physical/GPIO.h"
-#include "physical/SPI.h"
-#include "physical/UART.h"
-
-/*
- * Device drivers
- */
+#include "device/Gimbal.h"
+#include "device/PWM.h"
 #include "driver/ADS111x.h"
 #include "driver/BME280.h"
 #include "driver/BME68x.h"
+#include "driver/PCA9685.h"
+#include "physical/GPIO.h"
+#include "physical/I2C.h"
+#include "physical/LineConfig.h"
+#include "physical/SMBus.h"
+#include "physical/SPI.h"
+#include "physical/Terminal.h"
+#include "physical/TerminalConfig.h"
+#include "physical/UART.h"
 
-/*
- * Peripheral controllers
- */
-#include "device/Gimbal.h"
-
-#endif /* WH_PUG_H_ */
+#endif /* WH_PUG_ALL_HEADERS_H_ */

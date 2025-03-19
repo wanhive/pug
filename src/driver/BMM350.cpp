@@ -683,7 +683,7 @@ int32_t fix_sign(uint32_t inval, int8_t number_of_bits) {
 	return retval;
 }
 
-void update_default_coefiecents(float (&lsb_to_ut_degc)[4]) {
+void update_default_coefficients(float (&lsb_to_ut_degc)[4]) {
 	float bxy_sens, bz_sens, temp_sens, ina_xy_gain_trgt, ina_z_gain_trgt,
 			adc_gain, lut_gain;
 	float power;
@@ -725,7 +725,7 @@ BMM350::BMM350(const char *path, unsigned int address) :
 }
 
 BMM350::~BMM350() {
-	// TODO Auto-generated destructor stub
+
 }
 
 void BMM350::setup() {
@@ -923,7 +923,7 @@ void BMM350::configureInterrupt(const BMM350InterruptConfig &icfg) {
 }
 
 void BMM350::readRawData(BMM350RawData &data) {
-	uint8_t mag_data[MAG_TEMP_DATA_LENGTH] = { 0 };
+	uint8_t mag_data[MAG_TEMP_DATA_LENGTH] = { };
 
 	uint32_t raw_mag_x, raw_mag_y, raw_mag_z, raw_temp;
 
@@ -983,12 +983,16 @@ void BMM350::setInterruptControlIBI(bool enable, bool clearOnIBI) {
 
 void BMM350::setPadDrive(unsigned char drive) {
 	uint8_t reg_data;
-	if (drive <= PAD_DRIVE_STRONGEST) {
-		reg_data = drive & BMM350_DRV_MSK;
-
-		/* Set drive */
-		SMBus::write(BMM350_REG_PAD_CTRL, reg_data);
+	if (drive < PAD_DRIVE_WEAKEST) {
+		drive = PAD_DRIVE_WEAKEST;
+	} else if (drive > PAD_DRIVE_STRONGEST) {
+		drive = PAD_DRIVE_STRONGEST;
 	}
+
+	reg_data = drive & BMM350_DRV_MSK;
+
+	/* Set drive */
+	SMBus::write(BMM350_REG_PAD_CTRL, reg_data);
 }
 
 void BMM350::magneticResetAndWait() {
@@ -1370,7 +1374,7 @@ void BMM350::setPowerModeInternal(BMM350PowerMode mode) {
 
 void BMM350::readOutRawData(float (&out_data)[4]) {
 	float temp = 0.0;
-	struct BMM350RawData raw_data = { 0 };
+	struct BMM350RawData raw_data = { 0, 0, 0, 0 };
 
 	/* Float variable to convert mag lsb to uT and temp lsb to degC */
 	float lsb_to_ut_degc[4];
@@ -1378,7 +1382,7 @@ void BMM350::readOutRawData(float (&out_data)[4]) {
 	readRawData(raw_data);
 
 	/* Convert mag lsb to uT and temp lsb to degC */
-	update_default_coefiecents(lsb_to_ut_degc);
+	update_default_coefficients(lsb_to_ut_degc);
 
 	out_data[0] = (float) raw_data.x * lsb_to_ut_degc[0];
 	out_data[1] = (float) raw_data.y * lsb_to_ut_degc[1];

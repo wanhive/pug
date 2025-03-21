@@ -217,6 +217,8 @@ struct BMM350PmuCmdStatus0 {
 
 /**
  * User space driver for the BMM350 magnetometer.
+ * @note supports normal, forced and fast-forced modes over an I2C interface.
+ * @ref https://github.com/boschsensortec/BMM350_SensorAPI
  */
 class BMM350: protected SMBus {
 public:

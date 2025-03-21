@@ -747,8 +747,9 @@ void BMM350::setup() {
 
 	/* Soft-reset */
 	soft_reset = BMM350_CMD_SOFTRESET;
-
 	/* Set the command in the command register */
+	SMBus::write(BMM350_REG_CMD, soft_reset);
+	soft_reset = BMM350_CMD_NOP;
 	SMBus::write(BMM350_REG_CMD, soft_reset);
 	Timer::sleep(BMM350_SOFT_RESET_DELAY / 1000);
 
@@ -779,8 +780,9 @@ void BMM350::reset() {
 	uint8_t otp_cmd = BMM350_OTP_CMD_PWR_OFF_OTP;
 
 	reg_data = BMM350_CMD_SOFTRESET;
-
 	/* Set the command in the command register */
+	SMBus::write(BMM350_REG_CMD, reg_data);
+	reg_data = BMM350_CMD_NOP;
 	SMBus::write(BMM350_REG_CMD, reg_data);
 	Timer::sleep(BMM350_SOFT_RESET_DELAY / 1000);
 

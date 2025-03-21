@@ -353,16 +353,17 @@ public:
 	static constexpr unsigned char I2C_ADDR_LOW = (0x14);
 	/*! High I2C address */
 	static constexpr unsigned char I2C_ADDR_HIGH = (0x15);
-private:
 	/*! Chip id of BMM350 */
 	static constexpr unsigned char CHIP_ID = 0x33;
 	/*! Variant ID of BMM350 */
 	static constexpr unsigned char MIN_VARIANT = 0x10;
-
+	/*! Minimum pad drive strength */
+	static constexpr unsigned char PAD_DRIVE_WEAKEST = 0;
+	/*! Maximum pad drive strength (default) */
+	static constexpr unsigned char PAD_DRIVE_STRONGEST = 7;
+private:
 	static constexpr unsigned int OTP_DATA_LENGTH = 32;
 	static constexpr unsigned int MAG_TEMP_DATA_LENGTH = 12;
-	static constexpr unsigned char PAD_DRIVE_WEAKEST = 0;
-	static constexpr unsigned char PAD_DRIVE_STRONGEST = 7;
 
 	/*! BMM350 magnetometer compensate structure */
 	struct BMM350Compensate {

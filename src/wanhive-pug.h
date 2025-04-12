@@ -36,6 +36,7 @@
 #include "driver/ADS111x.h"
 #include "driver/BME280.h"
 #include "driver/BME68x.h"
+#include "driver/BMI270.h"
 #include "driver/BMM350.h"
 /*
  * Peripheral controllers

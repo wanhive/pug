@@ -826,6 +826,8 @@ void BMI270::setPowerMode(BMI270PowerMode mode) {
 	default:
 		break;
 	}
+
+	Timer::sleep(1);
 }
 
 void BMI270::setAuxiliary(bool enable) const {

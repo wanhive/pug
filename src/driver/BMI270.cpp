@@ -72,6 +72,10 @@ constexpr unsigned char LSB_MASK_8BIT = (0x0F); // 00001111
 constexpr unsigned char MSB_MASK_8BIT = (0xF0); // 11110000
 constexpr unsigned char FULL_MASK_8BIT = (0xFF); // 11111111
 
+constexpr double G_VALUE = 9.80665;
+constexpr double PI_VALUE = 3.141592653589793;
+constexpr double TEMP_RES = 0.001953125;
+
 const unsigned char bmi270ConfigFile[] = { 0xc8, 0x2e, 0x00, 0x2e, 0x80, 0x2e,
 		0x3d, 0xb1, 0xc8, 0x2e, 0x00, 0x2e, 0x80, 0x2e, 0x91, 0x03, 0x80, 0x2e,
 		0xbc, 0xb0, 0x80, 0x2e, 0xa3, 0x03, 0xc8, 0x2e, 0x00, 0x2e, 0x80, 0x2e,
@@ -902,7 +906,7 @@ void BMI270::setGyroscopeRange(BMI270GyroscopeRange range) {
 
 	SMBus::write(GYR_RANGE, range);
 	Timer::sleep(1);
-	dev.gyroRange = value * (3.141592653589793 / 180.0);
+	dev.gyroRange = value * (PI_VALUE / 180.0);
 }
 
 void BMI270::setAccelerometerRange(BMI270AccelerometerRange range) {
@@ -926,7 +930,7 @@ void BMI270::setAccelerometerRange(BMI270AccelerometerRange range) {
 
 	SMBus::write(ACC_RANGE, range);
 	Timer::sleep(1);
-	dev.accRange = value * (9.80665);
+	dev.accRange = value * G_VALUE;
 }
 
 void BMI270::setGyroscopeODR(BMI270GyroscopeODR odr) {
@@ -1112,17 +1116,17 @@ short BMI270::getRawTemperatureData() const {
 void BMI270::getGyroscopeData(BMI270Data &data) const {
 	BMI270RawData raw;
 	getRawGyroscopeData(raw);
-	data.x = (double) raw.x * dev.gyroRange / 32768.0;
-	data.y = (double) raw.y * dev.gyroRange / 32768.0;
-	data.z = (double) raw.z * dev.gyroRange / 32768.0;
+	data.x = raw.x * dev.gyroRange / 32768;
+	data.y = raw.y * dev.gyroRange / 32768;
+	data.z = raw.z * dev.gyroRange / 32768;
 }
 
 void BMI270::getAccelerometerData(BMI270Data &data) const {
 	BMI270RawData raw;
 	getRawAccelerometerData(raw);
-	data.x = (double) raw.x * dev.accRange / 32768.0;
-	data.y = (double) raw.y * dev.accRange / 32768.0;
-	data.z = (double) raw.z * dev.accRange / 32768.0;
+	data.x = raw.x * dev.accRange / 32768;
+	data.y = raw.y * dev.accRange / 32768;
+	data.z = raw.z * dev.accRange / 32768;
 }
 
 void BMI270::getData(BMI270Data &acc, BMI270Data &gyro) const {
@@ -1130,18 +1134,18 @@ void BMI270::getData(BMI270Data &acc, BMI270Data &gyro) const {
 	BMI270RawData rawGyro;
 	getRawData(rawAcc, rawGyro);
 
-	acc.x = (double) rawAcc.x * dev.accRange / 32768.0;
-	acc.y = (double) rawAcc.y * dev.accRange / 32768.0;
-	acc.z = (double) rawAcc.z * dev.accRange / 32768.0;
+	acc.x = rawAcc.x * dev.accRange / 32768;
+	acc.y = rawAcc.y * dev.accRange / 32768;
+	acc.z = rawAcc.z * dev.accRange / 32768;
 
-	gyro.x = (double) rawGyro.x * dev.gyroRange / 32768.0;
-	gyro.y = (double) rawGyro.y * dev.gyroRange / 32768.0;
-	gyro.z = (double) rawGyro.z * dev.gyroRange / 32768.0;
+	gyro.x = rawGyro.x * dev.gyroRange / 32768;
+	gyro.y = rawGyro.y * dev.gyroRange / 32768;
+	gyro.z = rawGyro.z * dev.gyroRange / 32768;
 
 }
 
 double BMI270::getTemperatureData() const {
-	return getRawTemperatureData() * 0.001952594 + 23.0;
+	return (getRawTemperatureData() * TEMP_RES) + 23.0;
 }
 
 void BMI270::writeConfiguration() {

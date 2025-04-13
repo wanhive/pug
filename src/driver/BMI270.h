@@ -158,6 +158,10 @@ public:
 	 */
 	void setup();
 	/**
+	 * Performs soft reset of the sensor and writes the configuration file.
+	 */
+	void reset();
+	/**
 	 * Sets sensor's power mode.
 	 * @param mode desired power mode
 	 */
@@ -266,15 +270,15 @@ public:
 	 */
 	void getAccelerometerData(BMI270Data &data) const;
 	/**
-	 * Reads temperature data in degree centigrades.
+	 * Reads temperature data in degree celsius.
 	 * @return temperature data
 	 */
 	double getTemperatureData() const;
 private:
 	/**
-	 * Loads sensor's configuration.
+	 * Writes sensor's configuration file.
 	 */
-	void loadConfiguration();
+	void writeConfiguration();
 public:
 	/*! Low I2C address (default) */
 	static constexpr unsigned char I2C_ADDR_LOW = (0x68);
@@ -288,14 +292,14 @@ private:
 		unsigned char chipId;
 		/* Internal Status */
 		unsigned char status;
-		/* Accelerator Range */
+		/* Accelerometer Range */
 		double accRange;
-		/* Accelerator ODR */
-		int accOdr;
+		/* Accelerometer ODR */
+		unsigned int accOdr;
 		/* Gyroscope Range */
 		double gyroRange;
 		/* Gyroscope ODR */
-		int gyroOdr;
+		unsigned int gyroOdr;
 	} dev;
 };
 

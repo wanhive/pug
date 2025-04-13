@@ -778,10 +778,16 @@ BMI270::~BMI270() {
 void BMI270::setup() {
 	// Check if chip ID matches
 	if ((dev.chipId = SMBus::readByte(CHIP_ID_ADDRESS)) != CHIP_ID) {
-		throw Exception(EX_STATE);
+		throw Exception(EX_OPERATION);
 	}
 
-	loadConfiguration();
+	reset();
+}
+
+void BMI270::reset() {
+	SMBus::write(CMD, (unsigned char) 0xB6);
+	Timer::sleep(2);
+	writeConfiguration();
 }
 
 void BMI270::setPowerMode(BMI270PowerMode mode) {
@@ -915,7 +921,7 @@ void BMI270::setAccelerometerRange(BMI270AccelerometerRange range) {
 }
 
 void BMI270::setGyroscopeODR(BMI270GyroscopeODR odr) {
-	int value = 0;
+	unsigned int value = 0;
 	switch (odr) {
 	case (BMI270_GYR_ODR_3200):
 		value = 3200;
@@ -952,7 +958,7 @@ void BMI270::setGyroscopeODR(BMI270GyroscopeODR odr) {
 }
 
 void BMI270::setAccelerometerODR(BMI270AccelerometerODR odr) {
-	int value = 0;
+	unsigned int value = 0;
 	switch (odr) {
 	case (BMI270_ACC_ODR_1600):
 		value = 1600;
@@ -1101,7 +1107,7 @@ double BMI270::getTemperatureData() const {
 	return getRawTemperatureData() * 0.001952594 + 23.0;
 }
 
-void BMI270::loadConfiguration() {
+void BMI270::writeConfiguration() {
 	dev.status = SMBus::readByte(INTERNAL_STATUS);
 
 	if (dev.status & 0x01) {

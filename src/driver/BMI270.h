@@ -162,6 +162,11 @@ public:
 	 */
 	void reset();
 	/**
+	 * Reads the internal status register.
+	 * @return internal status and error bits
+	 */
+	unsigned char getInternalStatus() const;
+	/**
 	 * Sets sensor's power mode.
 	 * @param mode desired power mode
 	 */
@@ -255,6 +260,12 @@ public:
 	 */
 	void getRawAccelerometerData(BMI270RawData &data) const;
 	/**
+	 * Reads raw accelerometer and gyroscope data.
+	 * @param acc raw accelerometer data
+	 * @param gyro raw gyroscope data
+	 */
+	void getRawData(BMI270RawData &acc, BMI270RawData &gyro) const;
+	/**
 	 * Reads raw temperature data.
 	 * @return raw temperature data
 	 */
@@ -269,6 +280,12 @@ public:
 	 * @param data accelerometer data
 	 */
 	void getAccelerometerData(BMI270Data &data) const;
+	/**
+	 * Reads accelerometer and gyroscope data.
+	 * @param acc accelerometer data in m/s^2
+	 * @param gyro gyroscope data in degree/s
+	 */
+	void getData(BMI270Data &acc, BMI270Data &gyro) const;
 	/**
 	 * Reads temperature data in degree celsius.
 	 * @return temperature data

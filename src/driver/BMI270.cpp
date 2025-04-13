@@ -790,6 +790,13 @@ void BMI270::reset() {
 	writeConfiguration();
 }
 
+unsigned char BMI270::getInternalStatus() const {
+	//Wait for ASIC initialization
+	Timer::sleep(20);
+	//Read the internal status register
+	return SMBus::readByte(INTERNAL_STATUS);
+}
+
 void BMI270::setPowerMode(BMI270PowerMode mode) {
 	switch (mode) {
 	case BMI270_POWER_LOW:
@@ -1081,6 +1088,19 @@ void BMI270::getRawAccelerometerData(BMI270RawData &data) const {
 	data.z = (buffer[5] << 8) | buffer[4];
 }
 
+void BMI270::getRawData(BMI270RawData &acc, BMI270RawData &gyro) const {
+	unsigned char buffer[12];
+	SMBus::read(ACC_X_7_0, 12, buffer);
+
+	acc.x = (buffer[1] << 8) | buffer[0];
+	acc.y = (buffer[3] << 8) | buffer[2];
+	acc.z = (buffer[5] << 8) | buffer[4];
+
+	gyro.x = (buffer[7] << 8) | buffer[6];
+	gyro.y = (buffer[9] << 8) | buffer[8];
+	gyro.z = (buffer[11] << 8) | buffer[10];
+}
+
 short BMI270::getRawTemperatureData() const {
 	unsigned char buffer[2];
 	SMBus::read(TEMP_7_0, 2, buffer);
@@ -1103,12 +1123,27 @@ void BMI270::getAccelerometerData(BMI270Data &data) const {
 	data.z = (double) raw.z * dev.accRange / 32768.0;
 }
 
+void BMI270::getData(BMI270Data &acc, BMI270Data &gyro) const {
+	BMI270RawData rawAcc;
+	BMI270RawData rawGyro;
+	getRawData(rawAcc, rawGyro);
+
+	acc.x = (double) rawAcc.x * dev.accRange / 32768.0;
+	acc.y = (double) rawAcc.y * dev.accRange / 32768.0;
+	acc.z = (double) rawAcc.z * dev.accRange / 32768.0;
+
+	gyro.x = (double) rawGyro.x * dev.gyroRange / 32768.0;
+	gyro.y = (double) rawGyro.y * dev.gyroRange / 32768.0;
+	gyro.z = (double) rawGyro.z * dev.gyroRange / 32768.0;
+
+}
+
 double BMI270::getTemperatureData() const {
 	return getRawTemperatureData() * 0.001952594 + 23.0;
 }
 
 void BMI270::writeConfiguration() {
-	dev.status = SMBus::readByte(INTERNAL_STATUS);
+	dev.status = getInternalStatus();
 
 	if (dev.status & 0x01) {
 		return;
@@ -1127,10 +1162,9 @@ void BMI270::writeConfiguration() {
 		}
 
 		SMBus::write(INIT_CTRL, (unsigned char) 0x01);
-		Timer::sleep(20);
-		dev.status = SMBus::readByte(INTERNAL_STATUS);
+		dev.status = getInternalStatus();
 		if (!(dev.status & 0x01)) {
-			throw Exception(EX_STATE);
+			throw Exception(EX_OPERATION);
 		}
 	}
 }

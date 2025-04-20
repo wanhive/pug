@@ -811,9 +811,9 @@ void BMM350::setPowerMode(BMM350PowerMode mode) {
 		throw Exception(EX_STATE);
 	}
 
-	if (((last_pwr_mode == BMM350_NORMAL_MODE)
+	if (((last_pwr_mode == BMM350_MODE_NORMAL)
 			|| (last_pwr_mode == BMM350_PMU_CMD_UPD_OAE))) {
-		reg_data = BMM350_SUSPEND_MODE;
+		reg_data = BMM350_MODE_SUSPEND;
 
 		/* Set PMU command configuration */
 		SMBus::write(BMM350_REG_PMU_CMD, reg_data);
@@ -830,13 +830,13 @@ void BMM350::setPerformance(const BMM350PerformanceConfig &ocfg) {
 
 	enum BMM350SamplesAveraging performance_fix = ocfg.averaging;
 	/* Reduce the performance setting when too high for the chosen ODR */
-	if ((ocfg.dataRate == BMM350_DATA_RATE_400HZ)
+	if ((ocfg.dataRate == BMM350_ODR_400HZ)
 			&& (ocfg.averaging >= BMM350_AVERAGING_2)) {
-		performance_fix = BMM350_NO_AVERAGING;
-	} else if ((ocfg.dataRate == BMM350_DATA_RATE_200HZ)
+		performance_fix = BMM350_AVERAGING_NONE;
+	} else if ((ocfg.dataRate == BMM350_ODR_200HZ)
 			&& (ocfg.averaging >= BMM350_AVERAGING_4)) {
 		performance_fix = BMM350_AVERAGING_2;
-	} else if ((ocfg.dataRate == BMM350_DATA_RATE_100HZ)
+	} else if ((ocfg.dataRate == BMM350_ODR_100HZ)
 			&& (ocfg.averaging >= BMM350_AVERAGING_8)) {
 		performance_fix = BMM350_AVERAGING_4;
 	}
@@ -1016,7 +1016,7 @@ void BMM350::magneticResetAndWait() {
 		restore_normal = BMM350_ENABLE;
 
 		/* Reset can only be triggered in suspend */
-		setPowerMode(BMM350_SUSPEND_MODE);
+		setPowerMode(BMM350_MODE_SUSPEND);
 	}
 
 	/* Set BR to PMU_CMD register */
@@ -1046,7 +1046,7 @@ void BMM350::magneticResetAndWait() {
 	}
 
 	if ((restore_normal == BMM350_ENABLE)) {
-		setPowerMode(BMM350_NORMAL_MODE);
+		setPowerMode(BMM350_MODE_NORMAL);
 	}
 }
 
@@ -1354,18 +1354,18 @@ void BMM350::setPowerModeInternal(BMM350PowerMode mode) {
 	avg = ((get_avg & BMM350_AVG_MSK) >> BMM350_AVG_POS);
 
 	/* Check if desired power mode is normal mode */
-	if (mode == BMM350_NORMAL_MODE) {
+	if (mode == BMM350_MODE_NORMAL) {
 		delay_us = BMM350_SUSPEND_TO_NORMAL_DELAY;
 	}
 
 	/* Check if desired power mode is forced mode */
-	if (mode == BMM350_FORCED_MODE) {
+	if (mode == BMM350_MODE_FORCED) {
 		/* Store delay based on averaging mode */
 		delay_us = sus_to_forced_mode[avg];
 	}
 
 	/* Check if desired power mode is forced mode fast */
-	if (mode == BMM350_FORCED_MODE_FAST) {
+	if (mode == BMM350_MODE_FAST) {
 		/* Store delay based on averaging mode */
 		delay_us = sus_to_forced_mode_fast[avg];
 	}

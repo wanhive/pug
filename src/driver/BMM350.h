@@ -74,10 +74,10 @@ enum BMM350Switch : unsigned char {
  * Power modes (use fast forced mode for data rate of 25Hz and higher).
  */
 enum BMM350PowerMode : unsigned char {
-	BMM350_SUSPEND_MODE = (0x00), /**< Suspend power mode */
-	BMM350_NORMAL_MODE = (0x01), /**< Normal (auto) power mode */
-	BMM350_FORCED_MODE = (0x03), /**< Forced (triggered) mode */
-	BMM350_FORCED_MODE_FAST = (0x04)/**< Forced fast data rate mode */
+	BMM350_MODE_SUSPEND = (0x00), /**< Suspend power mode */
+	BMM350_MODE_NORMAL = (0x01), /**< Normal (auto) power mode */
+	BMM350_MODE_FORCED = (0x03), /**< Forced (triggered) mode */
+	BMM350_MODE_FAST = (0x04) /**< Forced fast data rate mode */
 };
 
 /**
@@ -95,29 +95,29 @@ enum BMM350ResetType : unsigned char {
  * Output data rates
  */
 enum BMM350DataRate : unsigned char {
-	BMM350_DATA_RATE_400HZ = (0x2), /**< 400Hz */
-	BMM350_DATA_RATE_200HZ = (0x3), /**< 200Hz */
-	BMM350_DATA_RATE_100HZ = (0x4), /**< 100Hz */
-	BMM350_DATA_RATE_50HZ = (0x5), /**< 50Hz */
-	BMM350_DATA_RATE_25HZ = (0x6), /**< 25Hz */
-	BMM350_DATA_RATE_12_5HZ = (0x7), /**< 12.5Hz */
-	BMM350_DATA_RATE_6_25HZ = (0x8), /**< 6.25Hz */
-	BMM350_DATA_RATE_3_125HZ = (0x9),/**< 3.125Hz */
-	BMM350_DATA_RATE_1_5625HZ = (0xA)/**< 1.5625HZ */
+	BMM350_ODR_400HZ = (0x2), /**< 400Hz */
+	BMM350_ODR_200HZ = (0x3), /**< 200Hz */
+	BMM350_ODR_100HZ = (0x4), /**< 100Hz */
+	BMM350_ODR_50HZ = (0x5), /**< 50Hz */
+	BMM350_ODR_25HZ = (0x6), /**< 25Hz */
+	BMM350_ODR_12_5HZ = (0x7), /**< 12.5Hz */
+	BMM350_ODR_6_25HZ = (0x8), /**< 6.25Hz */
+	BMM350_ODR_3_125HZ = (0x9),/**< 3.125Hz */
+	BMM350_ODR_1_5625HZ = (0xA)/**< 1.5625HZ */
 };
 
 /**
  * Measurement averages
  */
 enum BMM350SamplesAveraging : unsigned char {
-	BMM350_NO_AVERAGING = (0x0), /**< None */
+	BMM350_AVERAGING_NONE = (0x0), /**< None */
 	BMM350_AVERAGING_2 = (0x1), /**< 2 samples */
 	BMM350_AVERAGING_4 = (0x2), /**< 4 samples */
 	BMM350_AVERAGING_8 = (0x3), /**< 8 samples */
 	BMM350_ULTRALOWNOISE = BMM350_AVERAGING_8,/**< Extremely low noise */
 	BMM350_LOWNOISE = BMM350_AVERAGING_4, /**< Low noise */
 	BMM350_REGULARPOWER = BMM350_AVERAGING_2, /**< Regular operation */
-	BMM350_LOWPOWER = BMM350_NO_AVERAGING /**< Low power operation */
+	BMM350_LOWPOWER = BMM350_AVERAGING_NONE /**< Low power operation */
 };
 
 /**
@@ -164,7 +164,7 @@ struct BMM350InterruptConfig {
  */
 struct BMM350PerformanceConfig {
 	/*! Output data rate */
-	BMM350DataRate dataRate { BMM350_DATA_RATE_100HZ };
+	BMM350DataRate dataRate { BMM350_ODR_100HZ };
 	/*! Samples averaging */
 	BMM350SamplesAveraging averaging { BMM350_AVERAGING_4 };
 };

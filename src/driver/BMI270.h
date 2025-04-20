@@ -40,7 +40,7 @@ enum BMI270Sensor : unsigned char {
  * BMI270 interrupt pins.
  */
 enum BMI270IntPin : unsigned char {
-	BMI270_INT1 = (0x53),/**< INT1 pin */
+	BMI270_INT1 = (0x53), /**< INT1 pin */
 	BMI270_INT2 = (0x54) /**< INT2 pin */
 };
 

@@ -50,6 +50,7 @@ constexpr unsigned char REG_AUX_CONF = (0x44);
 //INT
 constexpr unsigned char REG_INT_LATCH = (0x55);
 constexpr unsigned char REG_INT_STATUS_0 = (0x1C);
+constexpr unsigned char REG_INT_MAP_DATA = (0x58);
 // Temperature
 constexpr unsigned char REG_TEMPERATURE_0 = (0x22);
 //Saturation
@@ -897,6 +898,21 @@ void BMI270::getAuxConfiguration(BMI270AuxiliaryConfig &config) const {
 	config.offset = (value >> 4);
 }
 
+void BMI270::setFeaturesMap(BMI270IntPin pin, unsigned char value) const {
+	SMBus::write((pin + 3), value);
+}
+unsigned char BMI270::getFeaturesMap(BMI270IntPin pin) const {
+	return SMBus::readByte((pin + 3));
+}
+
+void BMI270::setDataMap(unsigned char value) const {
+	SMBus::write(REG_INT_MAP_DATA, value);
+}
+
+unsigned char BMI270::getDataMap() const {
+	return SMBus::readByte(REG_INT_MAP_DATA);
+}
+
 void BMI270::setIntPinConfiguration(const BMI270IntPinConfig &config) const {
 	unsigned char value = (config.activeHigh ? 0x01 : 0x0)
 			| (config.openDrain ? 0x02 : 0x0) | (config.out ? 0x04 : 0x0)
@@ -912,11 +928,11 @@ void BMI270::getIntPinConfiguration(BMI270IntPinConfig &config) const {
 	config.in = (value & 0x08);
 }
 
-void BMI270::setInterruptLatched(bool enable) const {
+void BMI270::setLatched(bool enable) const {
 	SMBus::write(REG_INT_LATCH, (unsigned char) (enable ? 0x01 : 0x0));
 }
 
-bool BMI270::isInterruptLatched() const {
+bool BMI270::isLatched() const {
 	return SMBus::readByte(REG_INT_LATCH);
 }
 

@@ -40,8 +40,8 @@ enum BMI270Sensor : unsigned char {
  * BMI270 interrupt pins.
  */
 enum BMI270IntPin : unsigned char {
-	BMI270_INT1 = (0x53),/**< INT1 */
-	BMI270_INT2 = (0x54) /**< INT2 */
+	BMI270_INT1 = (0x53),/**< INT1 pin */
+	BMI270_INT2 = (0x54) /**< INT2 pin */
 };
 
 /**
@@ -260,7 +260,7 @@ public:
 	 */
 	void setup();
 	/**
-	 * Performs soft reset and writes the configuration file.
+	 * Performs soft-reset and writes the configuration file.
 	 */
 	void reset();
 	/**
@@ -352,6 +352,28 @@ public:
 	 */
 	void getAuxConfiguration(BMI270AuxiliaryConfig &config) const;
 	/**
+	 * Maps features to an interrupt pin.
+	 * @param pin interrupt pin selector
+	 * @param value features bitmap
+	 */
+	void setFeaturesMap(BMI270IntPin pin, unsigned char value) const;
+	/**
+	 * Reads features map of an interrupt pin.
+	 * @param pin interrupt pin selector
+	 * @return features bitmap
+	 */
+	unsigned char getFeaturesMap(BMI270IntPin pin) const;
+	/**
+	 * Maps sensor data to the interrupt pins.
+	 * @param value sensor data bitmap
+	 */
+	void setDataMap(unsigned char value) const;
+	/**
+	 * Reads sensor data map of the interrupt pins.
+	 * @return sensor data bitmap
+	 */
+	unsigned char getDataMap() const;
+	/**
 	 * Updates interrupt pin's configuration.
 	 * @param config new configuration
 	 */
@@ -366,12 +388,12 @@ public:
 	 * Sets interrupt latch mode.
 	 * @param enable true for permanent latched, false for non latched
 	 */
-	void setInterruptLatched(bool enable) const;
+	void setLatched(bool enable) const;
 	/**
 	 * Reads interrupt latch mode.
 	 * @return true if permanent latched, false if non latched
 	 */
-	bool isInterruptLatched() const;
+	bool isLatched() const;
 	/**
 	 * Reads the sensor status.
 	 * @return status code

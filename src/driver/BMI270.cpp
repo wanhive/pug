@@ -27,45 +27,36 @@
 namespace {
 
 // General
-constexpr unsigned char CHIP_ID_ADDRESS = (0x00);
-constexpr unsigned char SENSORTIME_0 = (0x18);
-constexpr unsigned char SENSORTIME_1 = (0x19);
-constexpr unsigned char SENSORTIME_2 = (0x1A);
-constexpr unsigned char INTERNAL_STATUS = (0x21);
-constexpr unsigned char DATA_REG = (0x0C);
-constexpr unsigned char FIFO_CONFIG_0 = (0x48);
-constexpr unsigned char FIFO_CONFIG_1 = (0x49);
-constexpr unsigned char INIT_CTRL = (0x59);
-constexpr unsigned char INIT_ADDR_0 = (0x5B);
-constexpr unsigned char INIT_ADDR_1 = (0x5C);
-constexpr unsigned char INIT_DATA = (0x5E);
-constexpr unsigned char CMD = (0x7E);
-constexpr unsigned char PWR_CONF = (0x7C);
-constexpr unsigned char PWR_CTRL = (0x7D);
+constexpr unsigned char REG_CHIP_ID = (0x00);
+constexpr unsigned char REG_STATUS = (0x03);
+constexpr unsigned char REG_INTERNAL_STATUS = (0x21);
+constexpr unsigned char REG_INIT_CTRL = (0x59);
+constexpr unsigned char REG_INIT_ADDR_0 = (0x5B);
+constexpr unsigned char REG_INIT_ADDR_1 = (0x5C);
+constexpr unsigned char REG_INIT_DATA = (0x5E);
+constexpr unsigned char REG_CMD = (0x7E);
+constexpr unsigned char REG_PWR_CONF = (0x7C);
+constexpr unsigned char REG_PWR_CTRL = (0x7D);
 
 // Accelerometer
-constexpr unsigned char ACC_CONF = (0x40);
-constexpr unsigned char ACC_RANGE = (0x41);
-constexpr unsigned char ACC_X_7_0 = (0x0C);
-constexpr unsigned char ACC_X_15_8 = (0x0D);
-constexpr unsigned char ACC_Y_7_0 = (0x0E);
-constexpr unsigned char ACC_Y_15_8 = (0x0F);
-constexpr unsigned char ACC_Z_7_0 = (0x10);
-constexpr unsigned char ACC_Z_15_8 = (0x11);
+constexpr unsigned char REG_ACC_CONF = (0x40);
+constexpr unsigned char REG_ACC_RANGE = (0x41);
+constexpr unsigned char REG_DATA_8 = (0x0C);
 
 // Gyroscope
-constexpr unsigned char GYR_CONF = (0x42);
-constexpr unsigned char GYR_RANGE = (0x43);
-constexpr unsigned char GYR_X_7_0 = (0x12);
-constexpr unsigned char GYR_X_15_8 = (0x13);
-constexpr unsigned char GYR_Y_7_0 = (0x14);
-constexpr unsigned char GYR_Y_15_8 = (0x15);
-constexpr unsigned char GYR_Z_7_0 = (0x16);
-constexpr unsigned char GYR_Z_15_8 = (0x17);
+constexpr unsigned char REG_GYR_CONF = (0x42);
+constexpr unsigned char REG_GYR_RANGE = (0x43);
+constexpr unsigned char REG_DATA_14 = (0x12);
+
+//AUX
+constexpr unsigned char REG_AUX_CONF = (0x44);
+
+//INT
+constexpr unsigned char REG_INT_LATCH = (0x55);
+constexpr unsigned char REG_INT_STATUS_0 = (0x1C);
 
 // Temperature
-constexpr unsigned char TEMP_7_0 = (0x22);
-constexpr unsigned char TEMP_15_8 = (0x23);
+constexpr unsigned char REG_TEMPERATURE_0 = (0x22);
 
 // Masks
 constexpr unsigned char LSB_MASK_8BIT = (0x0F); // 00001111
@@ -761,6 +752,11 @@ const unsigned char bmi270ConfigFile[] = { 0xc8, 0x2e, 0x00, 0x2e, 0x80, 0x2e,
 		0x00, 0xc1, 0x80, 0x2e, 0x00, 0xc1, 0x80, 0x2e, 0x00, 0xc1, 0x80, 0x2e,
 		0x00, 0xc1 };
 
+unsigned char applyMask(bool enable, unsigned char value,
+		unsigned char mask) noexcept {
+	return (enable) ? (value | mask) : (value & ~mask);
+}
+
 }  // namespace
 
 namespace wanhive {
@@ -781,7 +777,7 @@ BMI270::~BMI270() {
 
 void BMI270::setup() {
 	// Check if chip ID matches
-	if ((dev.chipId = SMBus::readByte(CHIP_ID_ADDRESS)) != CHIP_ID) {
+	if ((dev.chipId = SMBus::readByte(REG_CHIP_ID)) != CHIP_ID) {
 		throw Exception(EX_OPERATION);
 	}
 
@@ -789,298 +785,161 @@ void BMI270::setup() {
 }
 
 void BMI270::reset() {
-	SMBus::write(CMD, (unsigned char) 0xB6);
+	SMBus::write(REG_CMD, (unsigned char) 0xB6);
 	Timer::sleep(2);
 	writeConfiguration();
 }
 
+void BMI270::setAdvancePowerSave(bool enable) const {
+	setFeature(REG_PWR_CONF, 0x01, enable);
+}
+
+bool BMI270::isAdvancePowerSave() const {
+	return isFeature(REG_PWR_CONF, 0x01);
+}
+
+void BMI270::setFastPowerUp(bool enable) const {
+	setFeature(REG_PWR_CONF, 0x04, enable);
+}
+
+bool BMI270::isFastPowerUp() const {
+	return isFeature(REG_PWR_CONF, 0x04);
+}
+
 unsigned char BMI270::getInternalStatus() const {
-	//Wait for ASIC initialization
 	Timer::sleep(20);
-	//Read the internal status register
-	return SMBus::readByte(INTERNAL_STATUS);
+	return SMBus::readByte(REG_INTERNAL_STATUS);
+}
+
+unsigned char BMI270::getSensorStatus() const {
+	return SMBus::readByte(REG_STATUS);
 }
 
 void BMI270::setPowerMode(BMI270PowerMode mode) {
 	switch (mode) {
-	case BMI270_POWER_LOW:
-		SMBus::write(PWR_CTRL, (unsigned char) 0x04);
-		SMBus::write(ACC_CONF, (unsigned char) 0x17);
-		SMBus::write(GYR_CONF, (unsigned char) 0x28);
-		SMBus::write(PWR_CONF, (unsigned char) 0x03);
-		dev.accOdr = 50;
-		dev.gyroOdr = 100;
+	case BMI270_MODE_LP:
+		/*! ACC: 50Hz, GYRO: 100Hz */
+		SMBus::write(REG_PWR_CTRL, (unsigned char) 0x04);
+		SMBus::write(REG_ACC_CONF, (unsigned char) 0x17);
+		SMBus::write(REG_GYR_CONF, (unsigned char) 0x28);
+		SMBus::write(REG_PWR_CONF, (unsigned char) 0x03);
 		break;
-	case BMI270_POWER_NORMAL:
-		SMBus::write(PWR_CTRL, (unsigned char) 0x0E);
-		SMBus::write(ACC_CONF, (unsigned char) 0xA8);
-		SMBus::write(GYR_CONF, (unsigned char) 0xA9);
-		SMBus::write(PWR_CONF, (unsigned char) 0x02);
-		dev.accOdr = 100;
-		dev.gyroOdr = 200;
+	case BMI270_MODE_NORMAL:
+		/*! ACC: 100Hz, GYRO: 200Hz */
+		SMBus::write(REG_PWR_CTRL, (unsigned char) 0x0E);
+		SMBus::write(REG_ACC_CONF, (unsigned char) 0xA8);
+		SMBus::write(REG_GYR_CONF, (unsigned char) 0xA9);
+		SMBus::write(REG_PWR_CONF, (unsigned char) 0x02);
 		break;
-	case BMI270_POWER_PERFORMANCE:
-		SMBus::write(PWR_CTRL, (unsigned char) 0x0E);
-		SMBus::write(ACC_CONF, (unsigned char) 0xA8);
-		SMBus::write(GYR_CONF, (unsigned char) 0xE9);
-		SMBus::write(PWR_CONF, (unsigned char) 0x02);
-		dev.accOdr = 100;
-		dev.gyroOdr = 200;
+	case BMI270_MODE_PERF:
+		/*! ACC: 100Hz, GYRO: 200Hz */
+		SMBus::write(REG_PWR_CTRL, (unsigned char) 0x0E);
+		SMBus::write(REG_ACC_CONF, (unsigned char) 0xA8);
+		SMBus::write(REG_GYR_CONF, (unsigned char) 0xE9);
+		SMBus::write(REG_PWR_CONF, (unsigned char) 0x02);
 		break;
 	default:
 		break;
 	}
-
-	Timer::sleep(1);
 }
 
-void BMI270::setAuxiliary(bool enable) const {
-	constexpr unsigned char mask = 0x1;
-	if (enable) {
-		SMBus::write(PWR_CTRL,
-				(unsigned char) (SMBus::readByte(PWR_CTRL) | mask));
-	} else {
-		SMBus::write(PWR_CTRL,
-				(unsigned char) (SMBus::readByte(PWR_CTRL) & ~mask));
-	}
-	Timer::sleep(1);
+void BMI270::setSensor(BMI270Sensor sensor, bool enable) const {
+	setFeature(REG_PWR_CTRL, sensor, enable);
 }
 
-void BMI270::setGyroscope(bool enable) const {
-	constexpr unsigned char mask = 0x2;
-	if (enable) {
-		SMBus::write(PWR_CTRL,
-				(unsigned char) (SMBus::readByte(PWR_CTRL) | mask));
-	} else {
-		SMBus::write(PWR_CTRL,
-				(unsigned char) (SMBus::readByte(PWR_CTRL) & ~mask));
-	}
-	Timer::sleep(1);
+bool BMI270::isSensor(BMI270Sensor sensor) const {
+	return isFeature(REG_PWR_CTRL, sensor);
 }
 
-void BMI270::setAccelerometer(bool enable) const {
-	constexpr unsigned char mask = 0x4;
-	if (enable) {
-		SMBus::write(PWR_CTRL,
-				(unsigned char) (SMBus::readByte(PWR_CTRL) | mask));
-	} else {
-		SMBus::write(PWR_CTRL,
-				(unsigned char) (SMBus::readByte(PWR_CTRL) & ~mask));
-	}
-	Timer::sleep(1);
+void BMI270::setAccelerometerConfiguration(
+		const BMI270AccelerometerConfig &config) const {
+	unsigned char value = (config.odr) | (config.bwp << 4)
+			| (config.filter ? 0x80 : 0x0);
+	SMBus::write(REG_ACC_CONF, value);
 }
 
-void BMI270::setTemperature(bool enable) const {
-	constexpr unsigned char mask = 0x8;
-	if (enable) {
-		SMBus::write(PWR_CTRL,
-				(unsigned char) (SMBus::readByte(PWR_CTRL) | mask));
-	} else {
-		SMBus::write(PWR_CTRL,
-				(unsigned char) (SMBus::readByte(PWR_CTRL) & ~mask));
-	}
-	Timer::sleep(1);
+void BMI270::getAccelerometerConfiguration(
+		BMI270AccelerometerConfig &config) const {
+	auto value = SMBus::readByte(REG_ACC_CONF);
+
+	config.odr = static_cast<BMI270AccelerometerODR>(value & 0x0F);
+	config.bwp = static_cast<BMI270AccelerometerBWP>((value >> 4) & 0x07);
+	config.filter = (value & 0x80);
 }
 
-void BMI270::setGyroscopeRange(BMI270GyroscopeRange range) {
-	double value = 0.0;
-	switch (range) {
-	case (BMI270_GYR_RANGE_2000):
-		value = 2000.0;
-		break;
-	case (BMI270_GYR_RANGE_1000):
-		value = 1000.0;
-		break;
-	case (BMI270_GYR_RANGE_500):
-		value = 500.0;
-		break;
-	case (BMI270_GYR_RANGE_250):
-		value = 250.0;
-		break;
-	case (BMI270_GYR_RANGE_125):
-		value = 125.0;
-		break;
-	default:
-		throw Exception(EX_PARAMETER);
-	}
-
-	SMBus::write(GYR_RANGE, range);
-	Timer::sleep(1);
-	dev.gyroRange = value * (PI_VALUE / 180.0);
+void BMI270::setAccelerometerRange(BMI270AccelerometerRange range) const {
+	SMBus::write(REG_ACC_RANGE, range);
 }
 
-void BMI270::setAccelerometerRange(BMI270AccelerometerRange range) {
-	double value = 0.0;
-	switch (range) {
-	case (BMI270_ACC_RANGE_16G):
-		value = 16.0;
-		break;
-	case (BMI270_ACC_RANGE_8G):
-		value = 8.0;
-		break;
-	case (BMI270_ACC_RANGE_4G):
-		value = 4.0;
-		break;
-	case (BMI270_ACC_RANGE_2G):
-		value = 2.0;
-		break;
-	default:
-		throw Exception(EX_PARAMETER);
-	}
-
-	SMBus::write(ACC_RANGE, range);
-	Timer::sleep(1);
-	dev.accRange = value * G_VALUE;
+BMI270AccelerometerRange BMI270::getAccelerometerRange() const {
+	return static_cast<BMI270AccelerometerRange>(SMBus::readByte(REG_ACC_RANGE));
 }
 
-void BMI270::setGyroscopeODR(BMI270GyroscopeODR odr) {
-	unsigned int value = 0;
-	switch (odr) {
-	case (BMI270_GYR_ODR_3200):
-		value = 3200;
-		break;
-	case (BMI270_GYR_ODR_1600):
-		value = 1600;
-		break;
-	case (BMI270_GYR_ODR_800):
-		value = 800;
-		break;
-	case (BMI270_GYR_ODR_400):
-		value = 400;
-		break;
-	case (BMI270_GYR_ODR_200):
-		value = 200;
-		break;
-	case (BMI270_GYR_ODR_100):
-		value = 100;
-		break;
-	case (BMI270_GYR_ODR_50):
-		value = 50;
-		break;
-	case (BMI270_GYR_ODR_25):
-		value = 25;
-		break;
-	default:
-		throw Exception(EX_PARAMETER);
-	}
-
-	SMBus::write(GYR_CONF,
-			(unsigned char) ((SMBus::readByte(GYR_CONF) & MSB_MASK_8BIT) | odr));
-	Timer::sleep(1);
-	dev.gyroOdr = value;
+void BMI270::setGyroscopeConfiguration(
+		const BMI270GyroscopeConfig &config) const {
+	unsigned char value = (config.odr) | (config.bwp << 4)
+			| (config.noise ? 0x40 : 0x0) | (config.filter ? 0x80 : 0x0);
+	SMBus::write(REG_GYR_CONF, value);
 }
 
-void BMI270::setAccelerometerODR(BMI270AccelerometerODR odr) {
-	unsigned int value = 0;
-	switch (odr) {
-	case (BMI270_ACC_ODR_1600):
-		value = 1600;
-		break;
-	case (BMI270_ACC_ODR_800):
-		value = 800;
-		break;
-	case (BMI270_ACC_ODR_400):
-		value = 400;
-		break;
-	case (BMI270_ACC_ODR_200):
-		value = 200;
-		break;
-	case (BMI270_ACC_ODR_100):
-		value = 100;
-		break;
-	case (BMI270_ACC_ODR_50):
-		value = 50;
-		break;
-	case (BMI270_ACC_ODR_25):
-		value = 25;
-		break;
-	default:
-		throw Exception(EX_PARAMETER);
-	}
+void BMI270::getGyroscopeConfiguration(BMI270GyroscopeConfig &config) const {
+	auto value = SMBus::readByte(REG_GYR_CONF);
 
-	SMBus::write(ACC_CONF,
-			(unsigned char) ((SMBus::readByte(ACC_CONF) & MSB_MASK_8BIT) | odr));
-	Timer::sleep(1);
-	dev.accOdr = value;
+	config.odr = static_cast<BMI270GyroscopeODR>(value & 0x0F);
+	config.bwp = static_cast<BMI270GyroscopeBWP>((value >> 4) & 0x03);
+	config.noise = (value & 0x40);
+	config.filter = (value & 0x80);
 }
 
-void BMI270::setGyroscopeBWP(BMI270GyroscopeBWP bwp) const {
-	constexpr unsigned char mask = 0xCF;
-	SMBus::write(GYR_CONF,
-			(unsigned char) ((SMBus::readByte(GYR_CONF) & mask) | (bwp << 4)));
-	Timer::sleep(1);
+void BMI270::setGyroscopeRange(BMI270GyroscopeRange range) const {
+	SMBus::write(REG_GYR_RANGE, range);
 }
 
-void BMI270::setAccelerometerBWP(BMI270AccelerometerBWP bwp) const {
-	constexpr unsigned char mask = 0x8F;
-	SMBus::write(ACC_CONF,
-			(unsigned char) ((SMBus::readByte(ACC_CONF) & mask) | (bwp << 4)));
-	Timer::sleep(1);
+BMI270GyroscopeRange BMI270::getGyroscopeRange() const {
+	return static_cast<BMI270GyroscopeRange>(SMBus::readByte(REG_GYR_RANGE));
 }
 
-void BMI270::setFIFOHeader(bool enable) const {
-	constexpr unsigned char mask = 0x10;
-	if (enable) {
-		SMBus::write(FIFO_CONFIG_1,
-				(unsigned char) (SMBus::readByte(FIFO_CONFIG_1) | mask));
-	} else {
-		SMBus::write(FIFO_CONFIG_1,
-				(unsigned char) (SMBus::readByte(FIFO_CONFIG_1) & ~mask));
-	}
-	Timer::sleep(1);
+void BMI270::setAuxConfiguration(const BMI270AuxiliaryConfig &config) const {
+	unsigned char value = (config.odr) | ((config.offset & 0x0F) << 4);
+	SMBus::write(REG_AUX_CONF, value);
 }
 
-void BMI270::setStreaming(bool enable) const {
-	constexpr unsigned char mask = 0xE0;
-	if (enable) {
-		SMBus::write(FIFO_CONFIG_1,
-				(unsigned char) (SMBus::readByte(FIFO_CONFIG_1) & ~mask));
-	} else {
-		SMBus::write(FIFO_CONFIG_1,
-				(unsigned char) (SMBus::readByte(FIFO_CONFIG_1) | mask));
-	}
-	Timer::sleep(1);
+void BMI270::getAuxConfiguration(BMI270AuxiliaryConfig &config) const {
+	auto value = SMBus::readByte(REG_AUX_CONF);
+	config.odr = static_cast<BMI270AuxOdr>(value & 0x0F);
+	config.offset = (value >> 4);
 }
 
-void BMI270::setGyroscopeNoise(bool performance) const {
-	constexpr unsigned char mask = 0x40;
-	if (performance) {
-		SMBus::write(GYR_CONF,
-				(unsigned char) (SMBus::readByte(GYR_CONF) | mask));
-	} else {
-		SMBus::write(GYR_CONF,
-				(unsigned char) (SMBus::readByte(GYR_CONF) & ~mask));
-	}
-	Timer::sleep(1);
+void BMI270::setIntPinConfiguration(const BMI270IntPinConfig &config) const {
+	unsigned char value = (config.activeHigh ? 0x01 : 0x0)
+			| (config.openDrain ? 0x02 : 0x0) | (config.out ? 0x04 : 0x0)
+			| (config.in ? 0x08 : 0x0);
+	SMBus::write(config.pin, value);
 }
 
-void BMI270::setGyroscopeFilter(bool performance) const {
-	constexpr unsigned char mask = 0x80;
-	if (performance) {
-		SMBus::write(GYR_CONF,
-				(unsigned char) (SMBus::readByte(GYR_CONF) | mask));
-	} else {
-		SMBus::write(GYR_CONF,
-				(unsigned char) (SMBus::readByte(GYR_CONF) & ~mask));
-	}
-	Timer::sleep(1);
+void BMI270::getIntPinConfiguration(BMI270IntPinConfig &config) const {
+	auto value = SMBus::readByte(config.pin);
+	config.activeHigh = (value & 0x01);
+	config.openDrain = (value & 0x02);
+	config.out = (value & 0x04);
+	config.in = (value & 0x08);
 }
 
-void BMI270::setAccelerometerFilter(bool performance) const {
-	constexpr unsigned char mask = 0x80;
-	if (performance) {
-		SMBus::write(ACC_CONF,
-				(unsigned char) (SMBus::readByte(GYR_CONF) | mask));
-	} else {
-		SMBus::write(ACC_CONF,
-				(unsigned char) (SMBus::readByte(GYR_CONF) & ~mask));
-	}
-	Timer::sleep(1);
+void BMI270::setInterruptLatched(bool enable) const {
+	SMBus::write(REG_INT_LATCH, (unsigned char) (enable ? 0x01 : 0x0));
+}
+
+bool BMI270::isInterruptLatched() const {
+	return SMBus::readByte(REG_INT_LATCH);
+}
+
+unsigned short BMI270::getInterruptStatus() const {
+	return SMBus::readWord(REG_INT_STATUS_0);
 }
 
 void BMI270::getRawGyroscopeData(BMI270RawData &data) const {
 	unsigned char buffer[6];
-	SMBus::read(GYR_X_7_0, 6, buffer);
+	SMBus::read(REG_DATA_14, 6, buffer);
 	data.x = (buffer[1] << 8) | buffer[0];
 	data.y = (buffer[3] << 8) | buffer[2];
 	data.z = (buffer[5] << 8) | buffer[4];
@@ -1088,7 +947,7 @@ void BMI270::getRawGyroscopeData(BMI270RawData &data) const {
 
 void BMI270::getRawAccelerometerData(BMI270RawData &data) const {
 	unsigned char buffer[6];
-	SMBus::read(ACC_X_7_0, 6, buffer);
+	SMBus::read(REG_DATA_8, 6, buffer);
 	data.x = (buffer[1] << 8) | buffer[0];
 	data.y = (buffer[3] << 8) | buffer[2];
 	data.z = (buffer[5] << 8) | buffer[4];
@@ -1096,7 +955,7 @@ void BMI270::getRawAccelerometerData(BMI270RawData &data) const {
 
 void BMI270::getRawData(BMI270RawData &acc, BMI270RawData &gyro) const {
 	unsigned char buffer[12];
-	SMBus::read(ACC_X_7_0, 12, buffer);
+	SMBus::read(REG_DATA_8, 12, buffer);
 
 	acc.x = (buffer[1] << 8) | buffer[0];
 	acc.y = (buffer[3] << 8) | buffer[2];
@@ -1108,71 +967,43 @@ void BMI270::getRawData(BMI270RawData &acc, BMI270RawData &gyro) const {
 }
 
 short BMI270::getRawTemperatureData() const {
-	unsigned char buffer[2];
-	SMBus::read(TEMP_7_0, 2, buffer);
-	return (buffer[1] << 8) | buffer[0];
-}
-
-void BMI270::getGyroscopeData(BMI270Data &data) const {
-	BMI270RawData raw;
-	getRawGyroscopeData(raw);
-	data.x = raw.x * dev.gyroRange / 32768;
-	data.y = raw.y * dev.gyroRange / 32768;
-	data.z = raw.z * dev.gyroRange / 32768;
-}
-
-void BMI270::getAccelerometerData(BMI270Data &data) const {
-	BMI270RawData raw;
-	getRawAccelerometerData(raw);
-	data.x = raw.x * dev.accRange / 32768;
-	data.y = raw.y * dev.accRange / 32768;
-	data.z = raw.z * dev.accRange / 32768;
-}
-
-void BMI270::getData(BMI270Data &acc, BMI270Data &gyro) const {
-	BMI270RawData rawAcc;
-	BMI270RawData rawGyro;
-	getRawData(rawAcc, rawGyro);
-
-	acc.x = rawAcc.x * dev.accRange / 32768;
-	acc.y = rawAcc.y * dev.accRange / 32768;
-	acc.z = rawAcc.z * dev.accRange / 32768;
-
-	gyro.x = rawGyro.x * dev.gyroRange / 32768;
-	gyro.y = rawGyro.y * dev.gyroRange / 32768;
-	gyro.z = rawGyro.z * dev.gyroRange / 32768;
-
-}
-
-double BMI270::getTemperatureData() const {
-	return (getRawTemperatureData() * TEMP_RES) + 23.0;
+	return SMBus::readWord(REG_TEMPERATURE_0);
 }
 
 void BMI270::writeConfiguration() {
-	dev.status = getInternalStatus();
+	auto status = getInternalStatus();
 
-	if (dev.status & 0x01) {
+	if (status & 0x01) {
 		return;
-	} else if (dev.status & 0x02) {
+	} else if (status & 0x02) {
 		throw Exception(EX_STATE);
 	} else {
-		SMBus::write(PWR_CONF, (unsigned char) 0x00);
+		SMBus::write(REG_PWR_CONF, (unsigned char) 0x00);
 		Timer::sleep(1);
-		SMBus::write(INIT_CTRL, (unsigned char) 0x00);
+		SMBus::write(REG_INIT_CTRL, (unsigned char) 0x00);
 
 		for (unsigned i = 0; i < 256; i++) {
-			SMBus::write(INIT_ADDR_0, (unsigned char) 0x00);
-			SMBus::write(INIT_ADDR_1, (unsigned char) i);
-			SMBus::write(INIT_DATA, 32, &bmi270ConfigFile[i * 32]);
+			SMBus::write(REG_INIT_ADDR_0, (unsigned char) 0x00);
+			SMBus::write(REG_INIT_ADDR_1, (unsigned char) i);
+			SMBus::write(REG_INIT_DATA, 32, &bmi270ConfigFile[i * 32]);
 			Timer::sleep(0, 20000);
 		}
 
-		SMBus::write(INIT_CTRL, (unsigned char) 0x01);
-		dev.status = getInternalStatus();
-		if (!(dev.status & 0x01)) {
-			throw Exception(EX_OPERATION);
+		SMBus::write(REG_INIT_CTRL, (unsigned char) 0x01);
+		status = getInternalStatus();
+		if (!(status & 0x01)) {
+			throw Exception(EX_STATE);
 		}
 	}
+}
+
+void BMI270::setFeature(unsigned char command, unsigned char feature,
+		bool enable) const {
+	SMBus::write(command, applyMask(enable, SMBus::readByte(command), feature));
+}
+
+bool BMI270::isFeature(unsigned char command, unsigned char feature) const {
+	return (SMBus::readByte(command) & feature);
 }
 
 } /* namespace wanhive */

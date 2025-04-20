@@ -37,32 +37,28 @@ constexpr unsigned char REG_INIT_DATA = (0x5E);
 constexpr unsigned char REG_CMD = (0x7E);
 constexpr unsigned char REG_PWR_CONF = (0x7C);
 constexpr unsigned char REG_PWR_CTRL = (0x7D);
-
 // Accelerometer
 constexpr unsigned char REG_ACC_CONF = (0x40);
 constexpr unsigned char REG_ACC_RANGE = (0x41);
 constexpr unsigned char REG_DATA_8 = (0x0C);
-
 // Gyroscope
 constexpr unsigned char REG_GYR_CONF = (0x42);
 constexpr unsigned char REG_GYR_RANGE = (0x43);
 constexpr unsigned char REG_DATA_14 = (0x12);
-
 //AUX
 constexpr unsigned char REG_AUX_CONF = (0x44);
-
 //INT
 constexpr unsigned char REG_INT_LATCH = (0x55);
 constexpr unsigned char REG_INT_STATUS_0 = (0x1C);
-
 // Temperature
 constexpr unsigned char REG_TEMPERATURE_0 = (0x22);
-
+//Saturation
+constexpr unsigned char REG_SATURATION = (0x4A);
 // Masks
 constexpr unsigned char LSB_MASK_8BIT = (0x0F); // 00001111
 constexpr unsigned char MSB_MASK_8BIT = (0xF0); // 11110000
 constexpr unsigned char FULL_MASK_8BIT = (0xFF); // 11111111
-
+//Constants
 constexpr double G_VALUE = 9.80665;
 constexpr double PI_VALUE = 3.141592653589793;
 constexpr double TEMP_RES = 0.001953125;
@@ -806,15 +802,6 @@ bool BMI270::isFastPowerUp() const {
 	return isFeature(REG_PWR_CONF, 0x04);
 }
 
-unsigned char BMI270::getInternalStatus() const {
-	Timer::sleep(20);
-	return SMBus::readByte(REG_INTERNAL_STATUS);
-}
-
-unsigned char BMI270::getSensorStatus() const {
-	return SMBus::readByte(REG_STATUS);
-}
-
 void BMI270::setPowerMode(BMI270PowerMode mode) {
 	switch (mode) {
 	case BMI270_MODE_LP:
@@ -933,8 +920,21 @@ bool BMI270::isInterruptLatched() const {
 	return SMBus::readByte(REG_INT_LATCH);
 }
 
+unsigned char BMI270::getSensorStatus() const {
+	return SMBus::readByte(REG_STATUS);
+}
+
+unsigned char BMI270::getInternalStatus() const {
+	Timer::sleep(20);
+	return SMBus::readByte(REG_INTERNAL_STATUS);
+}
+
 unsigned short BMI270::getInterruptStatus() const {
 	return SMBus::readWord(REG_INT_STATUS_0);
+}
+
+unsigned char BMI270::getSaturationStatus() const {
+	return SMBus::readByte(REG_SATURATION);
 }
 
 void BMI270::getRawGyroscopeData(BMI270RawData &data) const {

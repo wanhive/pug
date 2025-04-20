@@ -212,6 +212,16 @@ struct BMI270RawData {
 };
 
 /**
+ * BMI270 accelerometer and gyroscope ranges.
+ */
+struct BMI270Range {
+	/*! Accelerometer's G-range */
+	double g;
+	/*! Gyroscope's DPS range */
+	double dps;
+};
+
+/**
  * Processed BMI270 sensor data.
  */
 struct BMI270Data {
@@ -273,16 +283,6 @@ public:
 	 * @return true if enabled, false if disabled.
 	 */
 	bool isFastPowerUp() const;
-	/**
-	 * Reads the internal status register.
-	 * @return internal status and error bits
-	 */
-	unsigned char getInternalStatus() const;
-	/**
-	 * Reads the sensor status.
-	 * @return status code
-	 */
-	unsigned char getSensorStatus() const;
 	/**
 	 * Sets sensor's power mode.
 	 * @param mode desired power mode
@@ -373,10 +373,25 @@ public:
 	 */
 	bool isInterruptLatched() const;
 	/**
+	 * Reads the sensor status.
+	 * @return status code
+	 */
+	unsigned char getSensorStatus() const;
+	/**
+	 * Reads the internal status register.
+	 * @return internal status and error bits
+	 */
+	unsigned char getInternalStatus() const;
+	/**
 	 * Reads the interrupt status.
 	 * @return interrupt status code
 	 */
 	unsigned short getInterruptStatus() const;
+	/**
+	 * Reads the saturation status of the sensor.
+	 * @return status code
+	 */
+	unsigned char getSaturationStatus() const;
 	/**
 	 * Reads raw gyroscope data.
 	 * @param data raw gyroscope data

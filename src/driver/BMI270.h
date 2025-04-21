@@ -287,7 +287,7 @@ public:
 	 * Sets sensor's power mode.
 	 * @param mode desired power mode
 	 */
-	void setPowerMode(BMI270PowerMode mode);
+	void setPowerMode(BMI270PowerMode mode) const;
 	/**
 	 * Enables/disables a sensor/feature.
 	 * @param sensor sensor selector

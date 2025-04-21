@@ -32,7 +32,6 @@ constexpr unsigned char REG_STATUS = (0x03);
 constexpr unsigned char REG_INTERNAL_STATUS = (0x21);
 constexpr unsigned char REG_INIT_CTRL = (0x59);
 constexpr unsigned char REG_INIT_ADDR_0 = (0x5B);
-constexpr unsigned char REG_INIT_ADDR_1 = (0x5C);
 constexpr unsigned char REG_INIT_DATA = (0x5E);
 constexpr unsigned char REG_CMD = (0x7E);
 constexpr unsigned char REG_PWR_CONF = (0x7C);
@@ -773,7 +772,6 @@ BMI270::~BMI270() {
 }
 
 void BMI270::setup() {
-	// Check if chip ID matches
 	if ((dev.chipId = SMBus::readByte(REG_CHIP_ID)) != CHIP_ID) {
 		throw Exception(EX_OPERATION);
 	}
@@ -803,7 +801,9 @@ bool BMI270::isFastPowerUp() const {
 	return isFeature(REG_PWR_CONF, 0x04);
 }
 
-void BMI270::setPowerMode(BMI270PowerMode mode) {
+void BMI270::setPowerMode(BMI270PowerMode mode) const {
+	setAdvancePowerSave(false);
+	Timer::sleep(1);
 	switch (mode) {
 	case BMI270_MODE_LP:
 		/*! ACC: 50Hz, GYRO: 100Hz */
@@ -872,7 +872,6 @@ void BMI270::setGyroscopeConfiguration(
 
 void BMI270::getGyroscopeConfiguration(BMI270GyroscopeConfig &config) const {
 	auto value = SMBus::readByte(REG_GYR_CONF);
-
 	config.odr = static_cast<BMI270GyroscopeODR>(value & 0x0F);
 	config.bwp = static_cast<BMI270GyroscopeBWP>((value >> 4) & 0x03);
 	config.noise = (value & 0x40);
@@ -941,7 +940,6 @@ unsigned char BMI270::getSensorStatus() const {
 }
 
 unsigned char BMI270::getInternalStatus() const {
-	Timer::sleep(20);
 	return SMBus::readByte(REG_INTERNAL_STATUS);
 }
 
@@ -972,11 +970,9 @@ void BMI270::getRawAccelerometerData(BMI270RawData &data) const {
 void BMI270::getRawData(BMI270RawData &acc, BMI270RawData &gyro) const {
 	unsigned char buffer[12];
 	SMBus::read(REG_DATA_8, 12, buffer);
-
 	acc.x = (buffer[1] << 8) | buffer[0];
 	acc.y = (buffer[3] << 8) | buffer[2];
 	acc.z = (buffer[5] << 8) | buffer[4];
-
 	gyro.x = (buffer[7] << 8) | buffer[6];
 	gyro.y = (buffer[9] << 8) | buffer[8];
 	gyro.z = (buffer[11] << 8) | buffer[10];
@@ -1002,6 +998,7 @@ void BMI270::writeConfiguration() {
 	}
 
 	SMBus::write(REG_INIT_CTRL, (unsigned char) 0x01);
+	Timer::sleep(20);
 	if ((getInternalStatus() & 0x0F) != 0x01) {
 		throw Exception(EX_STATE);
 	}

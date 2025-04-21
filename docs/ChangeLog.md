@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - BMI270 inertial measurement unit driver.
 
+### Changed
+
+- BMM350 driver's enumerations and constants names.
+
 ## [0.6.0] - 2025-03-21
 
 ### Added

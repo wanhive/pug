@@ -1198,7 +1198,7 @@ unsigned char BMM350::readRegByte(unsigned char command) {
 unsigned int BMM350::readRegBytes(unsigned char command, unsigned int count,
 		void *buffer) {
 	if (!buffer || !count || count > 30) {
-		throw Exception(EX_PARAMETER);
+		throw Exception(EX_ARGUMENT);
 	}
 
 	unsigned char in[32];

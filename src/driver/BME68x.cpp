@@ -546,7 +546,7 @@ void BME68x::getHeaterConfiguration(BME68xHeaterConfig &config) const {
 			config.profile.duration[i] = data_array[i];
 		}
 	} else {
-		throw Exception(EX_PARAMETER);
+		throw Exception(EX_ARGUMENT);
 	}
 }
 
@@ -772,7 +772,7 @@ void BME68x::configureHeater(const BME68xHeaterConfig &config,
 	case MODE_SEQUENTIAL:
 		if ((!config.profile.duration) || (!config.profile.temperature)
 				|| (config.profile.length > 10)) {
-			throw Exception(EX_PARAMETER);
+			throw Exception(EX_ARGUMENT);
 		}
 
 		for (i = 0; i < config.profile.length; i++) {
@@ -789,11 +789,11 @@ void BME68x::configureHeater(const BME68xHeaterConfig &config,
 	case MODE_PARALLEL:
 		if ((!config.profile.duration) || (!config.profile.temperature)
 				|| (config.profile.length > 10)) {
-			throw Exception(EX_PARAMETER);
+			throw Exception(EX_ARGUMENT);
 		}
 
 		if (config.profile.sharedDuration == 0) {
-			throw Exception(EX_PARAMETER);
+			throw Exception(EX_ARGUMENT);
 		}
 
 		for (i = 0; i < config.profile.length; i++) {
@@ -811,7 +811,7 @@ void BME68x::configureHeater(const BME68xHeaterConfig &config,
 		SMBus::write(heater_dur_shared_addr, shared_dur);
 		break;
 	default:
-		throw Exception(EX_PARAMETER);
+		throw Exception(EX_ARGUMENT);
 	}
 
 	writeRegisters(rh_reg_addr, rh_reg_data, write_len);

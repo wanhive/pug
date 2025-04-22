@@ -30,6 +30,7 @@
 #include "driver/BME68x.h"
 #include "driver/BMI270.h"
 #include "driver/BMM350.h"
+#include "driver/MLX9064x.h"
 #include "driver/PCA9685.h"
 #include "physical/GPIO.h"
 #include "physical/I2C.h"

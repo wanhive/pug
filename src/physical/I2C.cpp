@@ -27,6 +27,7 @@
 #include <sys/ioctl.h>
 extern "C" {
 #include <linux/i2c-dev.h>
+#include <linux/i2c.h>
 }
 #include<cstdio>
 
@@ -95,6 +96,22 @@ void I2C::select(const I2CDevice &device) const {
 		throw SystemException();
 	} else {
 		//success
+	}
+}
+
+void I2C::resetAll() {
+	unsigned char command = 0x06;
+	i2c_rdwr_ioctl_data data;
+	i2c_msg msg;
+	msg.addr = 0x0;
+	msg.flags = 0;
+	msg.len = 1;
+	msg.buf = &command;
+	data.msgs = &msg;
+	data.nmsgs = 1;
+
+	if (::ioctl(File::get(), I2C_RDWR, &data) == -1) {
+		throw SystemException();
 	}
 }
 

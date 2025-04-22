@@ -95,6 +95,10 @@ public:
 	 * @param device device's properties
 	 */
 	void select(const I2CDevice &device) const;
+	/**
+	 * Sends out a general call reset to all devices.
+	 */
+	void resetAll();
 private:
 	void open(const char *path);
 	void open(const char *path, const I2CDevice &device);

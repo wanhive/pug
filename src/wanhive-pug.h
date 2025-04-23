@@ -38,7 +38,7 @@
 #include "driver/BME68x.h"
 #include "driver/BMI270.h"
 #include "driver/BMM350.h"
-#include "driver/MLX9064x.h"
+#include "driver/MLX90640.h"
 /*
  * Peripheral controllers
  */

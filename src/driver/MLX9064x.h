@@ -35,15 +35,15 @@ public:
 	/**
 	 * Constructor: opens the I2C bus.
 	 * @param bus i2c adapter's pathname
-	 * @param address device identifier (typically 0x33)
+	 * @param address device identifier
 	 */
-	MLX9064x(unsigned int bus, unsigned int address = I2C_ADDR);
+	MLX9064x(unsigned int bus, unsigned int address);
 	/**
 	 * Constructor: opens the I2C bus.
 	 * @param path i2c adapter's pathname
-	 * @param address device identifier (typically 0x33)
+	 * @param address device identifier
 	 */
-	MLX9064x(const char *path, unsigned int address = I2C_ADDR);
+	MLX9064x(const char *path, unsigned int address);
 	/**
 	 * Destructor: closes the i2c bus.
 	 */
@@ -71,9 +71,6 @@ public:
 	 * @param data word to write
 	 */
 	void writeReg(uint16_t command, uint16_t data) const;
-public:
-	/*! Default I2C address */
-	static constexpr unsigned char I2C_ADDR = 0x33;
 private:
 	unsigned int address;
 };

@@ -382,10 +382,8 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 			result.data[pixelNumber] = To;
 			if (To > result.data[result.max]) {
 				result.max = pixelNumber;
-			} else if (To <= result.data[result.min]) {
-				result.min = pixelNumber;
 			} else {
-				//Nothing
+				result.min = pixelNumber;
 			}
 		}
 	}
@@ -482,10 +480,8 @@ void MLX90640::getImage(const MLX90640Frame &frame,
 			result.data[pixelNumber] = image;
 			if (image > result.data[result.max]) {
 				result.max = pixelNumber;
-			} else if (image <= result.data[result.min]) {
-				result.min = pixelNumber;
 			} else {
-				//Nothing
+				result.min = pixelNumber;
 			}
 		}
 	}

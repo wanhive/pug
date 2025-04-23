@@ -11,4 +11,4 @@ Version: @VERSION@
 Requires.private: wanhive >= 10.0.0
 Cflags: -I${includedir}
 Libs: -L${libdir} -lwanhivepug
-Libs.private: -li2c
+Libs.private: -li2c -lm

@@ -31,7 +31,6 @@ libwanhivepug_la_CXXFLAGS = -Wall
 libwanhivepug_la_LDFLAGS = -version-info @WH_LIB_VERSION@
 libwanhivepug_la_SOURCES = $(WH_PUG_TOP_HDRS) $(WH_PHY_HDRS) $(WH_DRIV_HDRS) \
 	$(WH_DEVICE_HDRS) $(WH_PHY_SRCS) $(WH_DRIV_SRCS) $(WH_DEVICE_SRCS)
-libwanhivepug_la_LIBADD= -lwanhive -li2c
 
 # --- Library headers for installation ---
 wanhivepugtopdir=$(includedir)/wanhive

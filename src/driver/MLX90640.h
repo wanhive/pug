@@ -158,7 +158,7 @@ public:
 	 */
 	unsigned int readFrame(MLX90640Frame &frame) const;
 	/**
-	 * Calculate the object temperatures for all the pixels in a frame.
+	 * Calculates the object temperatures for all the pixels in a frame.
 	 * @param frame frame data
 	 * @param emissivity user-defined emissivity
 	 * @param tr user-defined reflected temperature
@@ -186,6 +186,11 @@ public:
 	 */
 	void fixOutlierPixels(MLX90640Mode mode,
 			MLX90640Data &target) const noexcept;
+	/**
+	 * Returns the pixel defect type.
+	 * @return defect type
+	 */
+	MLX90640Defect getDefect() const noexcept;
 	/**
 	 * Extracts the given frame's subpage number.
 	 * @param frame frame data

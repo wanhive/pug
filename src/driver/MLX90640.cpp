@@ -232,8 +232,8 @@ unsigned int MLX90640::readFrame(MLX90640Frame &frame) const {
 	return sn;
 }
 
-void MLX90640::getTemperature(const MLX90640Frame &frame,
-		float emissivity, float tr, MLX90640Data &result) const noexcept {
+void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
+		float tr, MLX90640Data &result) const noexcept {
 	float vdd;
 	float ta;
 	float ta4;
@@ -481,6 +481,10 @@ void MLX90640::fixBrokenPixels(MLX90640Mode mode,
 void MLX90640::fixOutlierPixels(MLX90640Mode mode,
 		MLX90640Data &target) const noexcept {
 	badPixelsCorrection(params.outlierPixels, mode, target);
+}
+
+MLX90640Defect MLX90640::getDefect() const noexcept {
+	return params.defect;
 }
 
 unsigned int MLX90640::getSubPageNumber(const MLX90640Frame &frame) noexcept {

@@ -86,6 +86,10 @@ struct MLX90640Frame {
 struct MLX90640Data {
 	/*! processed data */
 	float data[768];
+	/*! Maximum value index */
+	unsigned int max;
+	/*! Minimum value index */
+	unsigned int min;
 };
 
 /**

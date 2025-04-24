@@ -86,8 +86,6 @@ struct MLX90640Frame {
 struct MLX90640Data {
 	/*! Processed data */
 	float data[768];
-	/*! Subpage number */
-	unsigned int page;
 };
 
 /**
@@ -160,32 +158,29 @@ public:
 	 */
 	void synchronizeFrame() const;
 	/**
-	 * Reads the complete frame data (incl. auxiliary data and parameters).
+	 * Reads frame data (incl. auxiliary data and parameters) from the device.
 	 * @param frame stores the frame data
-	 * @param wait true to busy wait for data, false to return immediately
-	 * @return true if new data is available, false otherwise
+	 * @return subpage number
 	 */
-	bool readFrame(MLX90640Frame &frame, bool wait = true) const;
+	unsigned int readFrame(MLX90640Frame &frame) const;
 	/**
-	 * Calculates the object temperatures from the device's frame data. Uses
-	 * internally calculated emissivity and reflected temperature values.
+	 * Calculates object temperatures from the device's frame data. Uses
+	 * internal emissivity and reflected temperature values.
 	 * @param result stores the object temperature
-	 * @param wait true to busy wait for data, false to return immediately
-	 * @return true if new data is available, false otherwise
+	 * @return subpage number
 	 */
-	bool getTemperature(MLX90640Data &result, bool wait = true) const;
+	unsigned int getTemperature(MLX90640Data &result) const;
 	/**
-	 * Calculates the object temperatures from the device's frame data.
+	 * Calculates object temperatures from the device's frame data.
 	 * @param result stores the object temperature
 	 * @param emissivity user-defined emissivity
 	 * @param tr user-defined reflected temperature
-	 * @param wait true to busy wait for data, false to return immediately
-	 * @return true if new data is available, false otherwise
+	 * @return subpage number
 	 */
-	bool getTemperature(MLX90640Data &result, float emissivity, float tr,
-			bool wait = true) const;
+	unsigned int getTemperature(MLX90640Data &result, float emissivity,
+			float tr) const;
 	/**
-	 * Calculates the object temperatures for all the pixels in a frame.
+	 * Calculates object temperatures for all the pixels in a frame.
 	 * @param frame frame data
 	 * @param emissivity user-defined emissivity
 	 * @param tr user-defined reflected temperature
@@ -196,10 +191,9 @@ public:
 	/**
 	 * Generates a thermal image for all the pixels in device's frame.
 	 * @param result stores the output image
-	 * @param wait true to busy wait for data, false to return immediately
-	 * @return true if new data is available, false otherwise
+	 * @return subpage number
 	 */
-	bool getImage(MLX90640Data &result, bool wait = true) const;
+	unsigned int getImage(MLX90640Data &result) const;
 	/**
 	 * Generates a thermal image for all the pixels in a frame.
 	 * @param frame frame data
@@ -240,7 +234,7 @@ public:
 private:
 	void readEEPROM(uint16_t *eeData);
 	MLX90640Defect extractParameters(const uint16_t *eeData) noexcept;
-	bool readFrameData(uint16_t *frameData, bool wait) const;
+	unsigned int readFrameData(uint16_t *frameData) const;
 	float getVdd(const uint16_t *frameData) const noexcept;
 	float getAmbientTemperature(const uint16_t *frameData,
 			float vdd) const noexcept;
@@ -270,6 +264,10 @@ public:
 	static constexpr unsigned char I2C_ADDR = 0x33;
 	/*! 32x24 resolution */
 	static constexpr unsigned int PIXELS = 768;
+	/*! Image rows count for 32x24 resolution */
+	static constexpr unsigned int ROWS = 24;
+	/*! Image columns count for 32x24 resolution */
+	static constexpr unsigned int COLUMNS = 32;
 	/*! Default open air shift in surrounding temperature */
 	static constexpr float TA_SHIFT = 8;
 private:

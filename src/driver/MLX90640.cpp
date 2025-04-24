@@ -219,35 +219,26 @@ void MLX90640::synchronizeFrame() const {
 	}
 }
 
-bool MLX90640::readFrame(MLX90640Frame &frame, bool wait) const {
-	if (readFrameData(frame.data, wait)) {
-		frame.vdd = getVdd(frame.data);
-		frame.ta = getAmbientTemperature(frame.data, frame.vdd);
-		return true;
-	} else {
-		return false;
-	}
+unsigned int MLX90640::readFrame(MLX90640Frame &frame) const {
+	auto pn = readFrameData(frame.data);
+	frame.vdd = getVdd(frame.data);
+	frame.ta = getAmbientTemperature(frame.data, frame.vdd);
+	return pn;
 }
 
-bool MLX90640::getTemperature(MLX90640Data &result, bool wait) const {
+unsigned int MLX90640::getTemperature(MLX90640Data &result) const {
 	MLX90640Frame frame;
-	if (readFrame(frame, wait)) {
-		getTemperature(frame, 0.95, (frame.ta - TA_SHIFT), result);
-		return true;
-	} else {
-		return false;
-	}
+	auto pn = readFrame(frame);
+	getTemperature(frame, 0.95, (frame.ta - TA_SHIFT), result);
+	return pn;
 }
 
-bool MLX90640::getTemperature(MLX90640Data &result, float emissivity, float tr,
-		bool wait) const {
+unsigned int MLX90640::getTemperature(MLX90640Data &result, float emissivity,
+		float tr) const {
 	MLX90640Frame frame;
-	if (readFrame(frame, wait)) {
-		getTemperature(frame, emissivity, tr, result);
-		return true;
-	} else {
-		return false;
-	}
+	auto pn = readFrame(frame);
+	getTemperature(frame, emissivity, tr, result);
+	return pn;
 }
 
 void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
@@ -278,7 +269,6 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 	float kv;
 
 	auto frameData = frame.data;
-	result.page = getSubPageNumber(frame);
 
 	subPage = frameData[833];
 	vdd = frame.vdd;
@@ -401,14 +391,11 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 	}
 }
 
-bool MLX90640::getImage(MLX90640Data &result, bool wait) const {
+unsigned int MLX90640::getImage(MLX90640Data &result) const {
 	MLX90640Frame frame;
-	if (readFrame(frame, wait)) {
-		getImage(frame, result);
-		return true;
-	} else {
-		return false;
-	}
+	auto pn = readFrame(frame);
+	getImage(frame, result);
+	return pn;
 }
 
 void MLX90640::getImage(const MLX90640Frame &frame,
@@ -433,7 +420,6 @@ void MLX90640::getImage(const MLX90640Frame &frame,
 
 	auto frameData = frame.data;
 	subPage = frameData[833];
-	result.page = getSubPageNumber(frame);
 	vdd = frame.vdd;
 	ta = frame.ta;
 
@@ -548,22 +534,16 @@ MLX90640Defect MLX90640::extractParameters(const uint16_t *eeData) noexcept {
 	return extractDeviatingPixels(eeData);
 }
 
-bool MLX90640::readFrameData(uint16_t *frameData, bool wait) const {
+unsigned int MLX90640::readFrameData(uint16_t *frameData) const {
+	uint16_t dataReady = 0;
 	uint16_t controlRegister1;
 	uint16_t statusRegister;
 	uint16_t aux[AUX_DATA_COUNT];
 	uint8_t cnt = 0;
 
-	while (true) {
+	while (dataReady == 0) {
 		statusRegister = readReg(MLX90640_STATUS_REG);
-		auto dataReady = MLX90640_GET_DATA_READY(statusRegister);
-		if (dataReady) {
-			break;
-		} else if (wait) {
-			continue;
-		} else {
-			return false;
-		}
+		dataReady = MLX90640_GET_DATA_READY(statusRegister);
 	}
 
 	writeReg(MLX90640_STATUS_REG, MLX90640_INIT_STATUS_VALUE);
@@ -584,7 +564,7 @@ bool MLX90640::readFrameData(uint16_t *frameData, bool wait) const {
 		throw Exception(EX_OPERATION);
 	}
 
-	return true;
+	return frameData[833];
 }
 
 float MLX90640::getVdd(const uint16_t *frameData) const noexcept {

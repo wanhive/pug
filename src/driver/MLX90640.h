@@ -84,12 +84,10 @@ struct MLX90640Frame {
  * MLX90640 thermal data structure.
  */
 struct MLX90640Data {
-	/*! processed data */
+	/*! Processed data */
 	float data[768];
-	/*! Maximum value index */
-	unsigned int max;
-	/*! Minimum value index */
-	unsigned int min;
+	/*! Subpage number */
+	unsigned int page;
 };
 
 /**

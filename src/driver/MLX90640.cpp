@@ -46,17 +46,6 @@
 #include <cmath>
 #include <cstring>
 
-#define MLX90640_NO_ERROR 0
-#define MLX90640_I2C_NACK_ERROR 1
-#define MLX90640_I2C_WRITE_ERROR 2
-#define MLX90640_BROKEN_PIXELS_NUM_ERROR 3
-#define MLX90640_OUTLIER_PIXELS_NUM_ERROR 4
-#define MLX90640_BAD_PIXELS_NUM_ERROR 5
-#define MLX90640_ADJACENT_BAD_PIXELS_ERROR 6
-#define MLX90640_EEPROM_DATA_ERROR 7
-#define MLX90640_FRAME_DATA_ERROR 8
-#define MLX90640_MEAS_TRIGGER_ERROR 9
-
 #define BIT_MASK(x) (1UL << (x))
 #define REG_MASK(sbit,nbits) ~((~(~0UL << (nbits))) << (sbit))
 
@@ -185,6 +174,12 @@ MLX90640RefreshRate MLX90640::getRefreshRate() const {
 	return static_cast<MLX90640RefreshRate>(value & 0x07);
 }
 
+unsigned int MLX90640::calculateDelay() const {
+	auto rr = getRefreshRate();
+	auto hz = (0.5f) * (1UL << rr);
+	return static_cast<unsigned int>(ceilf(1000 / hz));
+}
+
 void MLX90640::setMode(MLX90640Mode mode) const {
 	uint16_t controlRegister1;
 	uint16_t value;
@@ -216,8 +211,7 @@ MLX90640Mode MLX90640::getMode() const {
 void MLX90640::synchronizeFrame() const {
 	uint16_t dataReady = 0;
 	uint16_t statusRegister;
-	writeReg(MLX90640_STATUS_REG,
-	MLX90640_INIT_STATUS_VALUE);
+	writeReg(MLX90640_STATUS_REG, MLX90640_INIT_STATUS_VALUE);
 
 	while (dataReady == 0) {
 		statusRegister = readReg(MLX90640_STATUS_REG);
@@ -225,11 +219,35 @@ void MLX90640::synchronizeFrame() const {
 	}
 }
 
-unsigned int MLX90640::readFrame(MLX90640Frame &frame) const {
-	auto sn = readFrameData(frame.data);
-	frame.vdd = getVdd(frame.data);
-	frame.ta = getAmbientTemperature(frame.data, frame.vdd);
-	return sn;
+bool MLX90640::readFrame(MLX90640Frame &frame, bool wait) const {
+	if (readFrameData(frame.data, wait)) {
+		frame.vdd = getVdd(frame.data);
+		frame.ta = getAmbientTemperature(frame.data, frame.vdd);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool MLX90640::getTemperature(MLX90640Data &result, bool wait) const {
+	MLX90640Frame frame;
+	if (readFrame(frame, wait)) {
+		getTemperature(frame, 0.95, (frame.ta - TA_SHIFT), result);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool MLX90640::getTemperature(MLX90640Data &result, float emissivity, float tr,
+		bool wait) const {
+	MLX90640Frame frame;
+	if (readFrame(frame, wait)) {
+		getTemperature(frame, emissivity, tr, result);
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
@@ -389,6 +407,16 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 	}
 }
 
+bool MLX90640::getImage(MLX90640Data &result, bool wait) const {
+	MLX90640Frame frame;
+	if (readFrame(frame, wait)) {
+		getImage(frame, result);
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void MLX90640::getImage(const MLX90640Frame &frame,
 		MLX90640Data &result) const noexcept {
 	float vdd;
@@ -532,39 +560,43 @@ MLX90640Defect MLX90640::extractParameters(const uint16_t *eeData) noexcept {
 	return extractDeviatingPixels(eeData);
 }
 
-unsigned int MLX90640::readFrameData(uint16_t *frameData) const {
-	uint16_t dataReady = 0;
+bool MLX90640::readFrameData(uint16_t *frameData, bool wait) const {
 	uint16_t controlRegister1;
 	uint16_t statusRegister;
 	uint16_t aux[AUX_DATA_COUNT];
 	uint8_t cnt = 0;
 
-	while (dataReady == 0) {
+	while (true) {
 		statusRegister = readReg(MLX90640_STATUS_REG);
-		dataReady = MLX90640_GET_DATA_READY(statusRegister);
+		auto dataReady = MLX90640_GET_DATA_READY(statusRegister);
+		if (dataReady) {
+			break;
+		} else if (wait) {
+			continue;
+		} else {
+			return false;
+		}
 	}
 
 	writeReg(MLX90640_STATUS_REG, MLX90640_INIT_STATUS_VALUE);
-
 	readReg(MLX90640_PIXEL_DATA_START_ADDRESS, PIXELS, frameData);
-
 	readReg(MLX90640_AUX_DATA_START_ADDRESS, AUX_DATA_COUNT, aux);
 
 	controlRegister1 = readReg(MLX90640_CTRL_REG);
 	frameData[832] = controlRegister1;
 	frameData[833] = MLX90640_GET_FRAME(statusRegister);
 
-	if (validateAuxData(aux) == MLX90640_NO_ERROR) {
+	if (validateAuxData(aux)) {
 		for (cnt = 0; cnt < AUX_DATA_COUNT; cnt++) {
 			frameData[cnt + PIXELS] = aux[cnt];
 		}
 	}
 
-	if (validateFrameData(frameData) != MLX90640_NO_ERROR) {
+	if (!validateFrameData(frameData)) {
 		throw Exception(EX_OPERATION);
 	}
 
-	return frameData[833];
+	return true;
 }
 
 float MLX90640::getVdd(const uint16_t *frameData) const noexcept {
@@ -1155,54 +1187,54 @@ bool MLX90640::isPixelBad(uint16_t pixel) const noexcept {
 	return false;
 }
 
-int MLX90640::validateFrameData(const uint16_t *frameData) const noexcept {
+bool MLX90640::validateFrameData(const uint16_t *frameData) const noexcept {
 	uint8_t line = 0;
 
 	for (unsigned i = 0; i < PIXELS; i += MLX90640_LINE_SIZE)
 	{
 		if ((frameData[i] == 0x7FFF) && (line % 2 == frameData[833]))
-			return -MLX90640_FRAME_DATA_ERROR;
+			return false;
 		line = line + 1;
 	}
 
-	return MLX90640_NO_ERROR;
+	return true;
 }
 
-int MLX90640::validateAuxData(const uint16_t *auxData) const noexcept {
+bool MLX90640::validateAuxData(const uint16_t *auxData) const noexcept {
 	if (auxData[0] == 0x7FFF)
-		return -MLX90640_FRAME_DATA_ERROR;
+		return false;
 
 	for (int i = 8; i < 19; i++) {
 		if (auxData[i] == 0x7FFF)
-			return -MLX90640_FRAME_DATA_ERROR;
+			return false;
 	}
 
 	for (int i = 20; i < 23; i++) {
 		if (auxData[i] == 0x7FFF)
-			return -MLX90640_FRAME_DATA_ERROR;
+			return false;
 	}
 
 	for (int i = 24; i < 33; i++) {
 		if (auxData[i] == 0x7FFF)
-			return -MLX90640_FRAME_DATA_ERROR;
+			return false;
 	}
 
 	for (int i = 40; i < 51; i++) {
 		if (auxData[i] == 0x7FFF)
-			return -MLX90640_FRAME_DATA_ERROR;
+			return false;
 	}
 
 	for (int i = 52; i < 55; i++) {
 		if (auxData[i] == 0x7FFF)
-			return -MLX90640_FRAME_DATA_ERROR;
+			return false;
 	}
 
 	for (int i = 56; i < 64; i++) {
 		if (auxData[i] == 0x7FFF)
-			return -MLX90640_FRAME_DATA_ERROR;
+			return false;
 	}
 
-	return MLX90640_NO_ERROR;
+	return true;
 }
 
 void MLX90640::badPixelsCorrection(const uint16_t *pixels, MLX90640Mode mode,

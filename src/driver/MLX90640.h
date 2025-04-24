@@ -61,10 +61,10 @@ enum MLX90640Mode : unsigned char {
  * MLX90640 pixel defects status
  */
 enum MLX90640Defect : unsigned char {
-	MLX90640_PIX_OK = (0x00), /**< Within limits */
+	MLX90640_PIX_OK = (0x00), /**< Within threshold */
 	MLX90640_PIX_BROKEN = (0x01),/**< No output */
 	MLX90640_PIX_OUTLIER = (0x02), /**< Out of specification */
-	MLX90640_PIX_BAD = (0x03), /**< Above limits */
+	MLX90640_PIX_BAD = (0x03), /**< Defective pixels */
 	MLX90640_PIX_ADJACENT = (0x04) /**< Adjacent defects */
 };
 
@@ -114,7 +114,7 @@ public:
 	 */
 	~MLX90640();
 	/**
-	 * Configures the driver.
+	 * Configures the driver and triggers fresh measurement cycle.
 	 */
 	void setup();
 	/**
@@ -142,6 +142,12 @@ public:
 	 */
 	MLX90640RefreshRate getRefreshRate() const;
 	/**
+	 * Returns the maximum delay in milliseconds required for a measurement
+	 * to complete on the basis of the current refresh rate.
+	 * @return delay in milliseconds
+	 */
+	unsigned int calculateDelay() const;
+	/**
 	 * Updates the working mode.
 	 * @param mode desired mode
 	 */
@@ -157,19 +163,45 @@ public:
 	void synchronizeFrame() const;
 	/**
 	 * Reads the complete frame data (incl. auxiliary data and parameters).
-	 * @param frame frame stores the frame data
-	 * @return subpage number (0 or 1)
+	 * @param frame stores the frame data
+	 * @param wait true to busy wait for data, false to return immediately
+	 * @return true if new data is available, false otherwise
 	 */
-	unsigned int readFrame(MLX90640Frame &frame) const;
+	bool readFrame(MLX90640Frame &frame, bool wait = true) const;
+	/**
+	 * Calculates the object temperatures from the device's frame data. Uses
+	 * internally calculated emissivity and reflected temperature values.
+	 * @param result stores the object temperature
+	 * @param wait true to busy wait for data, false to return immediately
+	 * @return true if new data is available, false otherwise
+	 */
+	bool getTemperature(MLX90640Data &result, bool wait = true) const;
+	/**
+	 * Calculates the object temperatures from the device's frame data.
+	 * @param result stores the object temperature
+	 * @param emissivity user-defined emissivity
+	 * @param tr user-defined reflected temperature
+	 * @param wait true to busy wait for data, false to return immediately
+	 * @return true if new data is available, false otherwise
+	 */
+	bool getTemperature(MLX90640Data &result, float emissivity, float tr,
+			bool wait = true) const;
 	/**
 	 * Calculates the object temperatures for all the pixels in a frame.
 	 * @param frame frame data
 	 * @param emissivity user-defined emissivity
 	 * @param tr user-defined reflected temperature
-	 * @param result stores the object temperature
+	 * @param result stores the object temperatures
 	 */
 	void getTemperature(const MLX90640Frame &frame, float emissivity, float tr,
 			MLX90640Data &result) const noexcept;
+	/**
+	 * Generates a thermal image for all the pixels in device's frame.
+	 * @param result stores the output image
+	 * @param wait true to busy wait for data, false to return immediately
+	 * @return true if new data is available, false otherwise
+	 */
+	bool getImage(MLX90640Data &result, bool wait = true) const;
 	/**
 	 * Generates a thermal image for all the pixels in a frame.
 	 * @param frame frame data
@@ -210,7 +242,7 @@ public:
 private:
 	void readEEPROM(uint16_t *eeData);
 	MLX90640Defect extractParameters(const uint16_t *eeData) noexcept;
-	unsigned int readFrameData(uint16_t *frameData) const;
+	bool readFrameData(uint16_t *frameData, bool wait) const;
 	float getVdd(const uint16_t *frameData) const noexcept;
 	float getAmbientTemperature(const uint16_t *frameData,
 			float vdd) const noexcept;
@@ -231,8 +263,8 @@ private:
 	bool checkAdjacentPixels(uint16_t pix1, uint16_t pix2) const noexcept;
 	float getMedian(float *values, int n) const noexcept;
 	bool isPixelBad(uint16_t pixel) const noexcept;
-	int validateFrameData(const uint16_t *frameData) const noexcept;
-	int validateAuxData(const uint16_t *auxData) const noexcept;
+	bool validateFrameData(const uint16_t *frameData) const noexcept;
+	bool validateAuxData(const uint16_t *auxData) const noexcept;
 	void badPixelsCorrection(const uint16_t *pixels, MLX90640Mode mode,
 			MLX90640Data &target) const noexcept;
 public:

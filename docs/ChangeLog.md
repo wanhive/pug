@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - BMI270 inertial measurement unit driver.
-- Bare bone MLX90640/MLX90641 driver.
+- MLX90640 IR thermal camera driver.
 
 ### Changed
 

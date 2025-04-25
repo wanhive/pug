@@ -25,14 +25,13 @@
 #include "MLX9064x.h"
 
 namespace wanhive {
+
 /**
- * MLX90640 resolutions (in bits).
+ * MLX90640 sub pages.
  */
-enum MLX90640Resolution : unsigned char {
-	MLX90640_RES_16 = (0x00),/**< 16 bits */
-	MLX90640_RES_17 = (0x01),/**< 17 bits */
-	MLX90640_RES_18 = (0x02),/**< 18 bits */
-	MLX90640_RES_19 = (0x03) /**< 19 bits */
+enum MLX90640SubPage : unsigned char {
+	MLX90640_SP0 = (0x00),/**< Sub page 0 */
+	MLX90640_SP1 = (0x01) /**< Sub page 1 */
 };
 
 /**
@@ -50,10 +49,20 @@ enum MLX90640RefreshRate : unsigned char {
 };
 
 /**
- * MLX90640 working modes.
+ * MLX90640 resolutions (in bits).
  */
-enum MLX90640Mode : unsigned char {
-	MLX90640_INTERLEAVE = (0x00),/**< Interleave mode */
+enum MLX90640Resolution : unsigned char {
+	MLX90640_RES_16 = (0x00),/**< 16 bits */
+	MLX90640_RES_17 = (0x01),/**< 17 bits */
+	MLX90640_RES_18 = (0x02),/**< 18 bits */
+	MLX90640_RES_19 = (0x03) /**< 19 bits */
+};
+
+/**
+ * MLX90640 reading patterns.
+ */
+enum MLX90640Pattern : unsigned char {
+	MLX90640_TV = (0x00),/**< Interleaved (TV) mode */
 	MLX90640_CHESS = (0x01) /**< Chess pattern mode */
 };
 
@@ -66,6 +75,21 @@ enum MLX90640Defect : unsigned char {
 	MLX90640_PIX_OUTLIER = (0x02), /**< Out of specification */
 	MLX90640_PIX_BAD = (0x03), /**< Defective pixels */
 	MLX90640_PIX_ADJACENT = (0x04) /**< Adjacent defects */
+};
+
+struct MLX90640Config {
+	/*! Activate/deactivate subpage mode */
+	bool subpage;
+	/*! Enable/Disable data hold */
+	bool hold;
+	/*! Repeat/Toggle the sub pages */
+	bool repeat;
+	/*! Refresh rate */
+	MLX90640RefreshRate refreshRate;
+	/*! ADC resolution */
+	MLX90640Resolution resolution;
+	/*! Reading pattern */
+	MLX90640Pattern pattern;
 };
 
 /**
@@ -86,12 +110,14 @@ struct MLX90640Frame {
 struct MLX90640Data {
 	/*! Processed data */
 	float data[768];
+	/*! Sub page number */
+	MLX90640SubPage page;
 };
 
 /**
  * MLX90640 IR thermal camera driver.
  */
-class MLX90640: protected MLX9064x {
+class MLX90640: public MLX9064x {
 public:
 	/**
 	 * Constructor: initializes the device.
@@ -118,82 +144,47 @@ public:
 	 */
 	void reset();
 	/**
-	 * Updates device's resolution.
-	 * @param resolution desired resolution
+	 * Updates device's control register 1.
+	 * @param config desired configuration.
 	 */
-	void setResolution(MLX90640Resolution resolution) const;
+	void setConfiguration(const MLX90640Config &config) const;
 	/**
-	 * Reads device's current resolution.
-	 * @return current resolution
+	 * Reads device's control register 1.
+	 * @param config current configuration
 	 */
-	MLX90640Resolution getResolution() const;
+	void getConfiguration(MLX90640Config &config) const;
 	/**
-	 * Updates device's refresh rate.
-	 * @param refreshRate desired refresh rate
+	 * Selects a sub page for measurement (if sub pages toggle is disabled).
+	 * @param page sub page's identifier
 	 */
-	void setRefreshRate(MLX90640RefreshRate refreshRate) const;
+	void selectSubPage(MLX90640SubPage page) const;
 	/**
-	 * Reads device's current refresh rate.
-	 * @return current refresh rate
+	 * Starts new measurement (clears status register's data available bit).
 	 */
-	MLX90640RefreshRate getRefreshRate() const;
+	void begin() const;
 	/**
-	 * Returns the maximum delay in milliseconds required for a measurement
-	 * to complete on the basis of the current refresh rate.
-	 * @return delay in milliseconds
+	 * Finishes the current measurement (indicate that the data has been read).
 	 */
-	unsigned int calculateDelay() const;
-	/**
-	 * Updates the working mode.
-	 * @param mode desired mode
-	 */
-	void setMode(MLX90640Mode mode) const;
-	/**
-	 * Returns the current working mode.
-	 * @return current mode
-	 */
-	MLX90640Mode getMode() const;
+	void finish() const;
 	/**
 	 * Busy waits for new data to become available.
 	 */
-	void synchronizeFrame() const;
+	void synchronize() const;
 	/**
 	 * Reads frame data (incl. auxiliary data and parameters) from the device.
 	 * @param frame stores the frame data
-	 * @return subpage number
+	 * @return true on successful reading, false if data not available
 	 */
-	unsigned int readFrame(MLX90640Frame &frame) const;
-	/**
-	 * Calculates object temperatures from the device's frame data. Uses
-	 * internal emissivity and reflected temperature values.
-	 * @param result stores the object temperature
-	 * @return subpage number
-	 */
-	unsigned int getTemperature(MLX90640Data &result) const;
-	/**
-	 * Calculates object temperatures from the device's frame data.
-	 * @param result stores the object temperature
-	 * @param emissivity user-defined emissivity
-	 * @param tr user-defined reflected temperature
-	 * @return subpage number
-	 */
-	unsigned int getTemperature(MLX90640Data &result, float emissivity,
-			float tr) const;
+	bool readFrame(MLX90640Frame &frame) const;
 	/**
 	 * Calculates object temperatures for all the pixels in a frame.
 	 * @param frame frame data
 	 * @param emissivity user-defined emissivity
-	 * @param tr user-defined reflected temperature
+	 * @param tReflected user-defined reflected temperature
 	 * @param result stores the object temperatures
 	 */
-	void getTemperature(const MLX90640Frame &frame, float emissivity, float tr,
-			MLX90640Data &result) const noexcept;
-	/**
-	 * Generates a thermal image for all the pixels in device's frame.
-	 * @param result stores the output image
-	 * @return subpage number
-	 */
-	unsigned int getImage(MLX90640Data &result) const;
+	void getTemperature(const MLX90640Frame &frame, float emissivity,
+			float tReflected, MLX90640Data &result) const noexcept;
 	/**
 	 * Generates a thermal image for all the pixels in a frame.
 	 * @param frame frame data
@@ -203,39 +194,45 @@ public:
 			MLX90640Data &result) const noexcept;
 	/**
 	 * Corrects the values of the broken pixels.
-	 * @param mode applicable working mode
-	 * @param target thermal data array (value-result argument)
+	 * @param pattern applicable working mode
+	 * @param data thermal data array (value-result argument)
 	 */
-	void fixBrokenPixels(MLX90640Mode mode, MLX90640Data &target) const noexcept;
+	void fixBroken(MLX90640Pattern pattern, MLX90640Data &data) const noexcept;
 	/**
 	 * Corrects the values of the outlier pixels.
-	 * @param mode applicable working mode
-	 * @param target thermal data array (value-result argument)
+	 * @param pattern applicable working mode
+	 * @param data thermal data array (value-result argument)
 	 */
-	void fixOutlierPixels(MLX90640Mode mode,
-			MLX90640Data &target) const noexcept;
+	void fixOutlier(MLX90640Pattern pattern, MLX90640Data &data) const noexcept;
 	/**
 	 * Returns the pixel defect type.
 	 * @return defect type
 	 */
 	MLX90640Defect getDefect() const noexcept;
 	/**
+	 * Returns the maximum delay in milliseconds required for a measurement
+	 * to complete on the basis of the given refresh rate.
+	 * @param refreshRate device's refresh rate
+	 * @return delay in milliseconds
+	 */
+	static unsigned int calculateDelay(MLX90640RefreshRate refreshRate) noexcept;
+	/**
 	 * Extracts the given frame's subpage number.
 	 * @param frame frame data
 	 * @return subpage number (0 or 1)
 	 */
-	static unsigned int getSubPageNumber(const MLX90640Frame &frame) noexcept;
+	static MLX90640SubPage getSubPage(const MLX90640Frame &frame) noexcept;
 	/**
-	 * Extracts the given frame's working mode.
+	 * Extracts frame data's pattern (interleaved/chess).
 	 * @param frame frame data
-	 * @return working mode
+	 * @return frame data's pattern
 	 */
-	static MLX90640Mode getMode(const MLX90640Frame &frame) noexcept;
+	static MLX90640Pattern getPattern(const MLX90640Frame &frame) noexcept;
 private:
 	void readEEPROM(uint16_t *eeData);
 	MLX90640Defect extractParameters(const uint16_t *eeData) noexcept;
 	uint16_t busyWaitForData() const;
-	unsigned int readFrameData(uint16_t *frameData) const;
+	bool readFrameData(uint16_t *frameData) const;
 	float getVdd(const uint16_t *frameData) const noexcept;
 	float getAmbientTemperature(const uint16_t *frameData,
 			float vdd) const noexcept;
@@ -258,7 +255,7 @@ private:
 	bool isPixelBad(uint16_t pixel) const noexcept;
 	bool validateFrameData(const uint16_t *frameData) const noexcept;
 	bool validateAuxData(const uint16_t *auxData) const noexcept;
-	void badPixelsCorrection(const uint16_t *pixels, MLX90640Mode mode,
+	void badPixelsCorrection(const uint16_t *pixels, MLX90640Pattern pattern,
 			MLX90640Data &target) const noexcept;
 public:
 	/*! Default I2C address */

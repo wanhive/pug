@@ -49,24 +49,11 @@
 #define BIT_MASK(x) (1UL << (x))
 #define REG_MASK(sbit,nbits) ~((~(~0UL << (nbits))) << (sbit))
 
-#define MLX90640_EEPROM_START_ADDRESS 0x2400
-#define MLX90640_PIXEL_DATA_START_ADDRESS 0x0400
-#define MLX90640_LINE_NUM 24
-#define MLX90640_COLUMN_NUM 32
-#define MLX90640_LINE_SIZE 32
-#define MLX90640_COLUMN_SIZE 24
-#define MLX90640_AUX_DATA_START_ADDRESS 0x0700
-#define MLX90640_STATUS_REG 0x8000
-#define MLX90640_INIT_STATUS_VALUE 0x0030
 #define MLX90640_STAT_FRAME_MASK BIT_MASK(0)
 #define MLX90640_GET_FRAME(reg_value) (reg_value & MLX90640_STAT_FRAME_MASK)
 #define MLX90640_STAT_DATA_READY_MASK BIT_MASK(3)
 #define MLX90640_GET_DATA_READY(reg_value) (reg_value & MLX90640_STAT_DATA_READY_MASK)
 
-#define MLX90640_CTRL_REG 0x800D
-#define MLX90640_CTRL_TRIG_READY_MASK BIT_MASK(15)
-#define MLX90640_CTRL_REFRESH_SHIFT 7
-#define MLX90640_CTRL_REFRESH_MASK REG_MASK(MLX90640_CTRL_REFRESH_SHIFT,3)
 #define MLX90640_CTRL_RESOLUTION_SHIFT 10
 #define MLX90640_CTRL_RESOLUTION_MASK REG_MASK(MLX90640_CTRL_RESOLUTION_SHIFT,2)
 #define MLX90640_CTRL_MEAS_MODE_SHIFT 12
@@ -88,9 +75,19 @@
 #define MLX90640_NIBBLE3(reg16) ((reg16 & MLX90640_NIBBLE3_MASK) >> 8)
 #define MLX90640_NIBBLE4(reg16) ((reg16 & MLX90640_NIBBLE4_MASK) >> 12)
 
-#define POW2(x) pow(2, (double)x)
+namespace {
 
-#define SCALEALPHA 0.000001
+constexpr uint16_t EEPROM_ADDR = (0x2400);
+constexpr uint16_t FRAME_ADDR = (0x0400);
+constexpr uint16_t AUX_ADDR = (0x0700);
+constexpr uint16_t REG_STATUS = (0x8000);
+constexpr uint16_t REG_CTRL = (0x800D);
+constexpr uint16_t STATUS_INIT = (0x0030);
+constexpr uint16_t STATUS_RESET = (0x0);
+constexpr uint16_t CTRL_DEFAULT = (0x1901);
+constexpr float SCALEALPHA = 0.000001;
+
+}  // namespace
 
 namespace wanhive {
 
@@ -116,134 +113,75 @@ void MLX90640::setup() {
 }
 
 void MLX90640::reset() {
-	uint16_t ctrlReg;
-
-	ctrlReg = readReg(MLX90640_CTRL_REG);
-
-	ctrlReg |= MLX90640_CTRL_TRIG_READY_MASK;
-	writeReg(MLX90640_CTRL_REG, ctrlReg);
-
+	constexpr uint16_t mask = (1UL << (15));
+	auto control = readReg(REG_CTRL);
+	control |= mask;
+	writeReg(REG_CTRL, control);
 	MLX9064x::reset();
-
-	ctrlReg = readReg(MLX90640_CTRL_REG);
-
-	if ((ctrlReg & MLX90640_CTRL_TRIG_READY_MASK) != 0) {
+	control = readReg(REG_CTRL);
+	if ((control & mask) != 0) {
 		throw Exception(EX_OPERATION);
 	}
 }
 
-void MLX90640::setResolution(MLX90640Resolution resolution) const {
-	uint16_t controlRegister1;
-	uint16_t value;
-
-	//value = (resolution & 0x03) << 10;
-	value = ((uint16_t) resolution << MLX90640_CTRL_RESOLUTION_SHIFT);
-	value &= ~MLX90640_CTRL_RESOLUTION_MASK;
-
-	controlRegister1 = readReg(MLX90640_CTRL_REG);
-	value = (controlRegister1 & MLX90640_CTRL_RESOLUTION_MASK) | value;
-	writeReg(MLX90640_CTRL_REG, value);
+void MLX90640::setConfiguration(const MLX90640Config &config) const {
+	constexpr uint16_t mask = 0b1110000001110010;
+	uint16_t value = (config.subpage ? 0x01 : 0x0) | (config.hold ? 0x04 : 0x0)
+			| (config.repeat ? 0x08 : 0x0) | (config.refreshRate << 7)
+			| (config.resolution << 10) | (config.pattern << 12);
+	value &= ~mask;
+	auto current = readReg(REG_CTRL);
+	writeReg(REG_CTRL, ((current & mask) | value));
 }
 
-MLX90640Resolution MLX90640::getResolution() const {
-	uint16_t controlRegister1;
-	controlRegister1 = readReg(MLX90640_CTRL_REG);
-	auto value = ((controlRegister1 & ~MLX90640_CTRL_RESOLUTION_MASK)
-			>> MLX90640_CTRL_RESOLUTION_SHIFT);
-	return static_cast<MLX90640Resolution>(value & 0x03);
+void MLX90640::getConfiguration(MLX90640Config &config) const {
+	auto v = readReg(REG_CTRL);
+	config.subpage = (v & 0x01);
+	config.hold = (v & 0x04);
+	config.repeat = (v & 0x08);
+	config.refreshRate = static_cast<MLX90640RefreshRate>((v >> 7) & 0x07);
+	config.resolution = static_cast<MLX90640Resolution>((v >> 10) & 0x03);
+	config.pattern = static_cast<MLX90640Pattern>((v >> 12) & 0x01);
 }
 
-void MLX90640::setRefreshRate(MLX90640RefreshRate refreshRate) const {
-	uint16_t controlRegister1;
-	uint16_t value;
-
-	value = ((uint16_t) refreshRate << MLX90640_CTRL_REFRESH_SHIFT);
-	value &= ~MLX90640_CTRL_REFRESH_MASK;
-
-	controlRegister1 = readReg(MLX90640_CTRL_REG);
-	value = (controlRegister1 & MLX90640_CTRL_REFRESH_MASK) | value;
-	writeReg(MLX90640_CTRL_REG, value);
+void MLX90640::selectSubPage(MLX90640SubPage page) const {
+	constexpr uint16_t mask = 0b1111111110001111;
+	uint16_t value = (page << 4);
+	value &= ~mask;
+	auto current = readReg(REG_CTRL);
+	writeReg(REG_CTRL, ((current & mask) | value));
 }
 
-MLX90640RefreshRate MLX90640::getRefreshRate() const {
-	uint16_t controlRegister1;
-
-	controlRegister1 = readReg(MLX90640_CTRL_REG);
-	auto value = ((controlRegister1 & ~MLX90640_CTRL_REFRESH_MASK)
-			>> MLX90640_CTRL_REFRESH_SHIFT);
-	return static_cast<MLX90640RefreshRate>(value & 0x07);
+void MLX90640::begin() const {
+	writeReg(REG_STATUS, STATUS_INIT);
 }
 
-unsigned int MLX90640::calculateDelay() const {
-	auto rr = getRefreshRate();
-	auto hz = (0.5f) * (1UL << rr);
-	return static_cast<unsigned int>(ceilf(1000 / hz));
+void MLX90640::finish() const {
+	writeReg(REG_STATUS, STATUS_RESET);
 }
 
-void MLX90640::setMode(MLX90640Mode mode) const {
-	uint16_t controlRegister1;
-	uint16_t value;
-
-	controlRegister1 = readReg(MLX90640_CTRL_REG);
-	switch (mode) {
-	case MLX90640_INTERLEAVE:
-		value = (controlRegister1 & ~MLX90640_CTRL_MEAS_MODE_MASK);
-		writeReg(MLX90640_CTRL_REG, value);
-		break;
-	case MLX90640_CHESS:
-		value = (controlRegister1 | MLX90640_CTRL_MEAS_MODE_MASK);
-		writeReg(MLX90640_CTRL_REG, value);
-		break;
-	default:
-		break;
-	}
-}
-
-MLX90640Mode MLX90640::getMode() const {
-	uint16_t controlRegister1;
-
-	controlRegister1 = readReg(MLX90640_CTRL_REG);
-	auto value = ((controlRegister1 & MLX90640_CTRL_MEAS_MODE_MASK)
-			>> MLX90640_CTRL_MEAS_MODE_SHIFT);
-	return static_cast<MLX90640Mode>(value & 0x01);
-}
-
-void MLX90640::synchronizeFrame() const {
+void MLX90640::synchronize() const {
 	uint16_t dataReady = 0;
-	uint16_t statusRegister;
-	writeReg(MLX90640_STATUS_REG, MLX90640_INIT_STATUS_VALUE);
+	writeReg(REG_STATUS, STATUS_INIT);
 
 	while (dataReady == 0) {
-		statusRegister = readReg(MLX90640_STATUS_REG);
-		dataReady = MLX90640_GET_DATA_READY(statusRegister);
+		auto status = readReg(REG_STATUS);
+		dataReady = MLX90640_GET_DATA_READY(status);
 	}
 }
 
-unsigned int MLX90640::readFrame(MLX90640Frame &frame) const {
-	auto pn = readFrameData(frame.data);
-	frame.vdd = getVdd(frame.data);
-	frame.ta = getAmbientTemperature(frame.data, frame.vdd);
-	return pn;
-}
-
-unsigned int MLX90640::getTemperature(MLX90640Data &result) const {
-	MLX90640Frame frame;
-	auto pn = readFrame(frame);
-	auto tr = (frame.ta - TA_SHIFT);
-	getTemperature(frame, DEFAULT_EMISSIVITY, tr, result);
-	return pn;
-}
-
-unsigned int MLX90640::getTemperature(MLX90640Data &result, float emissivity,
-		float tr) const {
-	MLX90640Frame frame;
-	auto pn = readFrame(frame);
-	getTemperature(frame, emissivity, tr, result);
-	return pn;
+bool MLX90640::readFrame(MLX90640Frame &frame) const {
+	if (readFrameData(frame.data)) {
+		frame.vdd = getVdd(frame.data);
+		frame.ta = getAmbientTemperature(frame.data, frame.vdd);
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
-		float tr, MLX90640Data &result) const noexcept {
+		float tReflected, MLX90640Data &result) const noexcept {
 	float vdd;
 	float ta;
 	float ta4;
@@ -270,22 +208,22 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 	float kv;
 
 	auto frameData = frame.data;
-
-	subPage = frameData[833];
+	result.page = getSubPage(frame);
+	subPage = result.page;
 	vdd = frame.vdd;
 	ta = frame.ta;
 
 	ta4 = (ta + 273.15);
 	ta4 = ta4 * ta4;
 	ta4 = ta4 * ta4;
-	tr4 = (tr + 273.15);
+	tr4 = (tReflected + 273.15);
 	tr4 = tr4 * tr4;
 	tr4 = tr4 * tr4;
 	taTr = tr4 - (tr4 - ta4) / emissivity;
 
-	ktaScale = POW2(params.ktaScale);
-	kvScale = POW2(params.kvScale);
-	alphaScale = POW2(params.alphaScale);
+	ktaScale = pow(2, params.ktaScale);
+	kvScale = pow(2, params.kvScale);
+	alphaScale = pow(2, params.alphaScale);
 
 	alphaCorrR[0] = 1 / (1 + params.ksTo[0] * 40);
 	alphaCorrR[1] = 1;
@@ -392,13 +330,6 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 	}
 }
 
-unsigned int MLX90640::getImage(MLX90640Data &result) const {
-	MLX90640Frame frame;
-	auto pn = readFrame(frame);
-	getImage(frame, result);
-	return pn;
-}
-
 void MLX90640::getImage(const MLX90640Frame &frame,
 		MLX90640Data &result) const noexcept {
 	float vdd;
@@ -420,12 +351,13 @@ void MLX90640::getImage(const MLX90640Frame &frame,
 	float kv;
 
 	auto frameData = frame.data;
-	subPage = frameData[833];
+	result.page = getSubPage(frame);
+	subPage = result.page;
 	vdd = frame.vdd;
 	ta = frame.ta;
 
-	ktaScale = POW2(params.ktaScale);
-	kvScale = POW2(params.kvScale);
+	ktaScale = pow(2, params.ktaScale);
+	kvScale = pow(2, params.kvScale);
 
 	//------------------------- Gain calculation -----------------------------------
 
@@ -490,32 +422,37 @@ void MLX90640::getImage(const MLX90640Frame &frame,
 	}
 }
 
-void MLX90640::fixBrokenPixels(MLX90640Mode mode,
-		MLX90640Data &target) const noexcept {
-	badPixelsCorrection(params.brokenPixels, mode, target);
+void MLX90640::fixBroken(MLX90640Pattern pattern,
+		MLX90640Data &data) const noexcept {
+	badPixelsCorrection(params.brokenPixels, pattern, data);
 }
 
-void MLX90640::fixOutlierPixels(MLX90640Mode mode,
-		MLX90640Data &target) const noexcept {
-	badPixelsCorrection(params.outlierPixels, mode, target);
+void MLX90640::fixOutlier(MLX90640Pattern pattern,
+		MLX90640Data &data) const noexcept {
+	badPixelsCorrection(params.outlierPixels, pattern, data);
 }
 
 MLX90640Defect MLX90640::getDefect() const noexcept {
 	return params.defect;
 }
 
-unsigned int MLX90640::getSubPageNumber(const MLX90640Frame &frame) noexcept {
-	return (frame.data[833] & 0x01);
+unsigned int MLX90640::calculateDelay(MLX90640RefreshRate refreshRate) noexcept {
+	auto hz = (0.5f) * (1UL << refreshRate);
+	return static_cast<unsigned int>(ceilf(1000 / hz));
 }
 
-MLX90640Mode MLX90640::getMode(const MLX90640Frame &frame) noexcept {
+MLX90640SubPage MLX90640::getSubPage(const MLX90640Frame &frame) noexcept {
+	return static_cast<MLX90640SubPage>(frame.data[833] & 0x01);
+}
+
+MLX90640Pattern MLX90640::getPattern(const MLX90640Frame &frame) noexcept {
 	auto value = ((frame.data[832] & MLX90640_CTRL_MEAS_MODE_MASK)
 			>> MLX90640_CTRL_MEAS_MODE_SHIFT);
-	return static_cast<MLX90640Mode>(value & 0x01);
+	return static_cast<MLX90640Pattern>(value & 0x01);
 }
 
 void MLX90640::readEEPROM(uint16_t *eeData) {
-	readReg(MLX90640_EEPROM_START_ADDRESS, EEPROM_DUMP_COUNT, eeData);
+	readReg(EEPROM_ADDR, EEPROM_DUMP_COUNT, eeData);
 }
 
 MLX90640Defect MLX90640::extractParameters(const uint16_t *eeData) noexcept {
@@ -539,31 +476,41 @@ uint16_t MLX90640::busyWaitForData() const {
 	uint16_t dataReady = 0;
 	uint16_t status = 0;
 	while (dataReady == 0) {
-		status = readReg(MLX90640_STATUS_REG);
+		status = readReg(REG_STATUS);
 		dataReady = MLX90640_GET_DATA_READY(status);
 	}
 
 	return status;
 }
 
-unsigned int MLX90640::readFrameData(uint16_t *frameData) const {
-	uint16_t controlRegister1;
-	uint16_t statusRegister;
+bool MLX90640::readFrameData(uint16_t *frameData) const {
 	uint16_t aux[AUX_DATA_COUNT];
-	uint8_t cnt = 0;
+	uint16_t status = 0;
+	auto control = readReg(REG_CTRL);
+	bool step = control & 0x04;
 
-	statusRegister = busyWaitForData();
+	if (step) {
+		status = readReg(REG_STATUS);
+	} else {
+		status = busyWaitForData();
+	}
 
-	writeReg(MLX90640_STATUS_REG, MLX90640_INIT_STATUS_VALUE);
-	readReg(MLX90640_PIXEL_DATA_START_ADDRESS, PIXELS, frameData);
-	readReg(MLX90640_AUX_DATA_START_ADDRESS, AUX_DATA_COUNT, aux);
+	if (!MLX90640_GET_DATA_READY(status)) {
+		return false;
+	}
 
-	controlRegister1 = readReg(MLX90640_CTRL_REG);
-	frameData[832] = controlRegister1;
-	frameData[833] = MLX90640_GET_FRAME(statusRegister);
+	readReg(FRAME_ADDR, PIXELS, frameData);
+	readReg(AUX_ADDR, AUX_DATA_COUNT, aux);
+	frameData[832] = control;
+	frameData[833] = MLX90640_GET_FRAME(status);
+	if (step) {
+		finish();
+	} else {
+		begin();
+	}
 
 	if (validateAuxData(aux)) {
-		for (cnt = 0; cnt < AUX_DATA_COUNT; cnt++) {
+		for (unsigned cnt = 0; cnt < AUX_DATA_COUNT; cnt++) {
 			frameData[cnt + PIXELS] = aux[cnt];
 		}
 	}
@@ -572,7 +519,7 @@ unsigned int MLX90640::readFrameData(uint16_t *frameData) const {
 		throw Exception(EX_OPERATION);
 	}
 
-	return frameData[833];
+	return true;
 }
 
 float MLX90640::getVdd(const uint16_t *frameData) const noexcept {
@@ -581,7 +528,7 @@ float MLX90640::getVdd(const uint16_t *frameData) const noexcept {
 
 	uint16_t resolutionRAM = (frameData[832] & ~MLX90640_CTRL_RESOLUTION_MASK)
 			>> MLX90640_CTRL_RESOLUTION_SHIFT;
-	resolutionCorrection = POW2(params.resolutionEE) / POW2(resolutionRAM);
+	resolutionCorrection = pow(2, params.resolutionEE) / pow(2, resolutionRAM);
 	vdd = (resolutionCorrection * (int16_t) frameData[810] - params.vdd25)
 			/ params.kVdd + 3.3;
 
@@ -597,7 +544,7 @@ float MLX90640::getAmbientTemperature(const uint16_t *frameData,
 	ptat = (int16_t) frameData[800];
 
 	ptatArt = (ptat / (ptat * params.alphaPTAT + (int16_t) frameData[768]))
-			* POW2(18);
+			* pow(2, 18);
 
 	ta = (ptatArt / (1 + params.KvPTAT * (vdd - 3.3)) - params.vPTAT25);
 	ta = ta / params.KtPTAT + 25;
@@ -638,7 +585,7 @@ void MLX90640::extractPTATParameters(const uint16_t *eeData) noexcept {
 
 	vPTAT25 = eeData[49];
 
-	alphaPTAT = (eeData[16] & MLX90640_NIBBLE4_MASK) / POW2(14) + 8.0f;
+	alphaPTAT = (eeData[16] & MLX90640_NIBBLE4_MASK) / pow(2, 14) + 8.0f;
 
 	params.KvPTAT = KvPTAT;
 	params.KtPTAT = KtPTAT;
@@ -708,7 +655,7 @@ void MLX90640::extractAlphaParameters(const uint16_t *eeData) noexcept {
 	alphaScale = MLX90640_NIBBLE4(eeData[32]) + 30;
 	alphaRef = eeData[33];
 
-	for (int i = 0; i < 6; i++) {
+	for (unsigned i = 0; i < 6; i++) {
 		p = i * 4;
 		accRow[p + 0] = MLX90640_NIBBLE1(eeData[34 + i]);
 		accRow[p + 1] = MLX90640_NIBBLE2(eeData[34 + i]);
@@ -716,13 +663,13 @@ void MLX90640::extractAlphaParameters(const uint16_t *eeData) noexcept {
 		accRow[p + 3] = MLX90640_NIBBLE4(eeData[34 + i]);
 	}
 
-	for (int i = 0; i < MLX90640_LINE_NUM; i++) {
+	for (unsigned i = 0; i < ROWS; i++) {
 		if (accRow[i] > 7) {
 			accRow[i] = accRow[i] - 16;
 		}
 	}
 
-	for (int i = 0; i < 8; i++) {
+	for (unsigned i = 0; i < 8; i++) {
 		p = i * 4;
 		accColumn[p + 0] = MLX90640_NIBBLE1(eeData[40 + i]);
 		accColumn[p + 1] = MLX90640_NIBBLE2(eeData[40 + i]);
@@ -730,14 +677,14 @@ void MLX90640::extractAlphaParameters(const uint16_t *eeData) noexcept {
 		accColumn[p + 3] = MLX90640_NIBBLE4(eeData[40 + i]);
 	}
 
-	for (int i = 0; i < MLX90640_COLUMN_NUM; i++) {
+	for (unsigned i = 0; i < COLUMNS; i++) {
 		if (accColumn[i] > 7) {
 			accColumn[i] = accColumn[i] - 16;
 		}
 	}
 
-	for (int i = 0; i < MLX90640_LINE_NUM; i++) {
-		for (int j = 0; j < MLX90640_COLUMN_NUM; j++) {
+	for (unsigned i = 0; i < ROWS; i++) {
+		for (unsigned j = 0; j < COLUMNS; j++) {
 			p = 32 * i + j;
 			alphaTemp[p] = (eeData[64 + p] & 0x03F0) >> 4;
 			if (alphaTemp[p] > 31) {
@@ -746,7 +693,7 @@ void MLX90640::extractAlphaParameters(const uint16_t *eeData) noexcept {
 			alphaTemp[p] = alphaTemp[p] * (1 << accRemScale);
 			alphaTemp[p] = (alphaRef + (accRow[i] << accRowScale)
 					+ (accColumn[j] << accColumnScale) + alphaTemp[p]);
-			alphaTemp[p] = alphaTemp[p] / POW2(alphaScale);
+			alphaTemp[p] = alphaTemp[p] / pow(2, alphaScale);
 			alphaTemp[p] = alphaTemp[p]
 					- params.tgc * (params.cpAlpha[0] + params.cpAlpha[1]) / 2;
 			alphaTemp[p] = SCALEALPHA / alphaTemp[p];
@@ -767,7 +714,7 @@ void MLX90640::extractAlphaParameters(const uint16_t *eeData) noexcept {
 	}
 
 	for (unsigned i = 0; i < PIXELS; i++) {
-		temp = alphaTemp[i] * POW2(alphaScale);
+		temp = alphaTemp[i] * pow(2, alphaScale);
 		params.alpha[i] = (temp + 0.5);
 
 	}
@@ -797,7 +744,7 @@ void MLX90640::extractOffsetParameters(const uint16_t *eeData) noexcept {
 		occRow[p + 3] = MLX90640_NIBBLE4(eeData[18 + i]);
 	}
 
-	for (int i = 0; i < MLX90640_LINE_NUM; i++) {
+	for (unsigned i = 0; i < ROWS; i++) {
 		if (occRow[i] > 7) {
 			occRow[i] = occRow[i] - 16;
 		}
@@ -811,14 +758,14 @@ void MLX90640::extractOffsetParameters(const uint16_t *eeData) noexcept {
 		occColumn[p + 3] = MLX90640_NIBBLE4(eeData[24 + i]);
 	}
 
-	for (int i = 0; i < MLX90640_COLUMN_NUM; i++) {
+	for (unsigned i = 0; i < COLUMNS; i++) {
 		if (occColumn[i] > 7) {
 			occColumn[i] = occColumn[i] - 16;
 		}
 	}
 
-	for (int i = 0; i < MLX90640_LINE_NUM; i++) {
-		for (int j = 0; j < MLX90640_COLUMN_NUM; j++) {
+	for (unsigned i = 0; i < ROWS; i++) {
+		for (unsigned j = 0; j < COLUMNS; j++) {
 			p = 32 * i + j;
 			params.offset[p] = (eeData[64 + p] & MLX90640_MSBITS_6_MASK) >> 10;
 			if (params.offset[p] > 31) {
@@ -852,8 +799,8 @@ void MLX90640::extractKtaPixelParameters(const uint16_t *eeData) noexcept {
 	ktaScale1 = MLX90640_NIBBLE2(eeData[56]) + 8;
 	ktaScale2 = MLX90640_NIBBLE1(eeData[56]);
 
-	for (int i = 0; i < MLX90640_LINE_NUM; i++) {
-		for (int j = 0; j < MLX90640_COLUMN_NUM; j++) {
+	for (unsigned i = 0; i < ROWS; i++) {
+		for (unsigned j = 0; j < COLUMNS; j++) {
 			p = 32 * i + j;
 			split = 2 * (p / 32 - (p / 64) * 2) + p % 2;
 			ktaTemp[p] = (eeData[64 + p] & 0x000E) >> 1;
@@ -862,7 +809,7 @@ void MLX90640::extractKtaPixelParameters(const uint16_t *eeData) noexcept {
 			}
 			ktaTemp[p] = ktaTemp[p] * (1 << ktaScale2);
 			ktaTemp[p] = KtaRC[split] + ktaTemp[p];
-			ktaTemp[p] = ktaTemp[p] / POW2(ktaScale1);
+			ktaTemp[p] = ktaTemp[p] / pow(2, ktaScale1);
 
 		}
 	}
@@ -881,7 +828,7 @@ void MLX90640::extractKtaPixelParameters(const uint16_t *eeData) noexcept {
 	}
 
 	for (unsigned i = 0; i < PIXELS; i++) {
-		temp = ktaTemp[i] * POW2(ktaScale1);
+		temp = ktaTemp[i] * pow(2, ktaScale1);
 		if (temp < 0) {
 			params.kta[i] = (temp - 0.5);
 		} else {
@@ -931,12 +878,12 @@ void MLX90640::extractKvPixelParameters(const uint16_t *eeData) noexcept {
 
 	kvScale = MLX90640_NIBBLE3(eeData[56]);
 
-	for (int i = 0; i < MLX90640_LINE_NUM; i++) {
-		for (int j = 0; j < MLX90640_COLUMN_NUM; j++) {
+	for (unsigned i = 0; i < ROWS; i++) {
+		for (unsigned j = 0; j < COLUMNS; j++) {
 			p = 32 * i + j;
 			split = 2 * (p / 32 - (p / 64) * 2) + p % 2;
 			kvTemp[p] = KvT[split];
-			kvTemp[p] = kvTemp[p] / POW2(kvScale);
+			kvTemp[p] = kvTemp[p] / pow(2, kvScale);
 		}
 	}
 
@@ -954,7 +901,7 @@ void MLX90640::extractKvPixelParameters(const uint16_t *eeData) noexcept {
 	}
 
 	for (unsigned i = 0; i < PIXELS; i++) {
-		temp = kvTemp[i] * POW2(kvScale);
+		temp = kvTemp[i] * pow(2, kvScale);
 		if (temp < 0) {
 			params.kv[i] = (temp - 0.5);
 		} else {
@@ -992,7 +939,7 @@ void MLX90640::extractCPParameters(const uint16_t *eeData) noexcept {
 	if (alphaSP[0] > 511) {
 		alphaSP[0] = alphaSP[0] - 1024;
 	}
-	alphaSP[0] = alphaSP[0] / POW2(alphaScale);
+	alphaSP[0] = alphaSP[0] / pow(2, alphaScale);
 
 	alphaSP[1] = (eeData[57] & MLX90640_MSBITS_6_MASK) >> 10;
 	if (alphaSP[1] > 31) {
@@ -1003,12 +950,12 @@ void MLX90640::extractCPParameters(const uint16_t *eeData) noexcept {
 	cpKta = (int8_t) MLX90640_LS_BYTE(eeData[59]);
 
 	ktaScale1 = MLX90640_NIBBLE2(eeData[56]) + 8;
-	params.cpKta = cpKta / POW2(ktaScale1);
+	params.cpKta = cpKta / pow(2, ktaScale1);
 
 	cpKv = (int8_t) MLX90640_MS_BYTE(eeData[59]);
 
 	kvScale = MLX90640_NIBBLE3(eeData[56]);
-	params.cpKv = cpKv / POW2(kvScale);
+	params.cpKv = cpKv / pow(2, kvScale);
 
 	params.cpAlpha[0] = alphaSP[0];
 	params.cpAlpha[1] = alphaSP[1];
@@ -1166,8 +1113,7 @@ bool MLX90640::isPixelBad(uint16_t pixel) const noexcept {
 bool MLX90640::validateFrameData(const uint16_t *frameData) const noexcept {
 	uint8_t line = 0;
 
-	for (unsigned i = 0; i < PIXELS; i += MLX90640_LINE_SIZE)
-	{
+	for (unsigned i = 0; i < PIXELS; i += COLUMNS) {
 		if ((frameData[i] == 0x7FFF) && (line % 2 == frameData[833]))
 			return false;
 		line = line + 1;
@@ -1213,8 +1159,8 @@ bool MLX90640::validateAuxData(const uint16_t *auxData) const noexcept {
 	return true;
 }
 
-void MLX90640::badPixelsCorrection(const uint16_t *pixels, MLX90640Mode mode,
-		MLX90640Data &target) const noexcept {
+void MLX90640::badPixelsCorrection(const uint16_t *pixels,
+		MLX90640Pattern pattern, MLX90640Data &target) const noexcept {
 	float ap[4];
 	uint8_t pix;
 	uint8_t line;
@@ -1226,7 +1172,7 @@ void MLX90640::badPixelsCorrection(const uint16_t *pixels, MLX90640Mode mode,
 		line = pixels[pix] >> 5;
 		column = pixels[pix] - (line << 5);
 
-		if (mode == 1) {
+		if (pattern == 1) {
 			if (line == 0) {
 				if (column == 0) {
 					to[pixels[pix]] = to[33];

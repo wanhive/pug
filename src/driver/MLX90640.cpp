@@ -229,7 +229,8 @@ unsigned int MLX90640::readFrame(MLX90640Frame &frame) const {
 unsigned int MLX90640::getTemperature(MLX90640Data &result) const {
 	MLX90640Frame frame;
 	auto pn = readFrame(frame);
-	getTemperature(frame, 0.95, (frame.ta - TA_SHIFT), result);
+	auto tr = (frame.ta - TA_SHIFT);
+	getTemperature(frame, DEFAULT_EMISSIVITY, tr, result);
 	return pn;
 }
 
@@ -534,17 +535,24 @@ MLX90640Defect MLX90640::extractParameters(const uint16_t *eeData) noexcept {
 	return extractDeviatingPixels(eeData);
 }
 
-unsigned int MLX90640::readFrameData(uint16_t *frameData) const {
+uint16_t MLX90640::busyWaitForData() const {
 	uint16_t dataReady = 0;
+	uint16_t status = 0;
+	while (dataReady == 0) {
+		status = readReg(MLX90640_STATUS_REG);
+		dataReady = MLX90640_GET_DATA_READY(status);
+	}
+
+	return status;
+}
+
+unsigned int MLX90640::readFrameData(uint16_t *frameData) const {
 	uint16_t controlRegister1;
 	uint16_t statusRegister;
 	uint16_t aux[AUX_DATA_COUNT];
 	uint8_t cnt = 0;
 
-	while (dataReady == 0) {
-		statusRegister = readReg(MLX90640_STATUS_REG);
-		dataReady = MLX90640_GET_DATA_READY(statusRegister);
-	}
+	statusRegister = busyWaitForData();
 
 	writeReg(MLX90640_STATUS_REG, MLX90640_INIT_STATUS_VALUE);
 	readReg(MLX90640_PIXEL_DATA_START_ADDRESS, PIXELS, frameData);

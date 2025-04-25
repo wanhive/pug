@@ -234,6 +234,7 @@ public:
 private:
 	void readEEPROM(uint16_t *eeData);
 	MLX90640Defect extractParameters(const uint16_t *eeData) noexcept;
+	uint16_t busyWaitForData() const;
 	unsigned int readFrameData(uint16_t *frameData) const;
 	float getVdd(const uint16_t *frameData) const noexcept;
 	float getAmbientTemperature(const uint16_t *frameData,
@@ -268,8 +269,14 @@ public:
 	static constexpr unsigned int ROWS = 24;
 	/*! Image columns count for 32x24 resolution */
 	static constexpr unsigned int COLUMNS = 32;
+	/*! Default emissivity value */
+	static constexpr float DEFAULT_EMISSIVITY = 0.95;
+	/*! Default reflected temperature value */
+	static constexpr float DEFAULT_TR = 23.15;
 	/*! Default open air shift in surrounding temperature */
 	static constexpr float TA_SHIFT = 8;
+	/*! Maximum wait time (milliseconds) after POR */
+	static constexpr unsigned int POR_RESET_DELAY = 5000;
 private:
 	static constexpr unsigned int EEPROM_DUMP_COUNT = 832;
 	static constexpr unsigned int AUX_DATA_COUNT = 64;

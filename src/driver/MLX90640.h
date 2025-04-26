@@ -112,6 +112,10 @@ struct MLX90640Data {
 	float data[768];
 	/*! Sub page number */
 	MLX90640SubPage page;
+	/*! Maximum value's index */
+	unsigned int max;
+	/*! Minimum value's index */
+	unsigned int min;
 };
 
 /**

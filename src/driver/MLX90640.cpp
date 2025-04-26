@@ -209,6 +209,8 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 
 	auto frameData = frame.data;
 	result.page = getSubPage(frame);
+	result.max = PIXELS;
+	result.min = PIXELS;
 	subPage = result.page;
 	vdd = frame.vdd;
 	ta = frame.ta;
@@ -255,7 +257,7 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 						* (1 + params.cpKv * (vdd - 3.3));
 	}
 
-	for (int pixelNumber = 0; pixelNumber < 768; pixelNumber++) {
+	for (unsigned pixelNumber = 0; pixelNumber < PIXELS; pixelNumber++) {
 		ilPattern = pixelNumber / 32 - (pixelNumber / 64) * 2;
 		chessPattern = ilPattern ^ (pixelNumber - (pixelNumber / 2) * 2);
 		conversionPattern = ((pixelNumber + 2) / 4 - (pixelNumber + 3) / 4
@@ -326,6 +328,14 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 											+ taTr)) - 273.15;
 
 			result.data[pixelNumber] = To;
+
+			if ((result.max == PIXELS) || (To > result.data[result.max])) {
+				result.max = pixelNumber;
+			}
+
+			if ((result.min == PIXELS) || (To <= result.data[result.min])) {
+				result.min = pixelNumber;
+			}
 		}
 	}
 }
@@ -352,6 +362,8 @@ void MLX90640::getImage(const MLX90640Frame &frame,
 
 	auto frameData = frame.data;
 	result.page = getSubPage(frame);
+	result.max = PIXELS;
+	result.min = PIXELS;
 	subPage = result.page;
 	vdd = frame.vdd;
 	ta = frame.ta;
@@ -384,7 +396,7 @@ void MLX90640::getImage(const MLX90640Frame &frame,
 						* (1 + params.cpKv * (vdd - 3.3));
 	}
 
-	for (int pixelNumber = 0; pixelNumber < 768; pixelNumber++) {
+	for (unsigned pixelNumber = 0; pixelNumber < PIXELS; pixelNumber++) {
 		ilPattern = pixelNumber / 32 - (pixelNumber / 64) * 2;
 		chessPattern = ilPattern ^ (pixelNumber - (pixelNumber / 2) * 2);
 		conversionPattern = ((pixelNumber + 2) / 4 - (pixelNumber + 3) / 4
@@ -418,6 +430,14 @@ void MLX90640::getImage(const MLX90640Frame &frame,
 			image = irData * alphaCompensated;
 
 			result.data[pixelNumber] = image;
+
+			if ((result.max == PIXELS) || (image > result.data[result.max])) {
+				result.max = pixelNumber;
+			}
+
+			if ((result.min == PIXELS) || (image <= result.data[result.min])) {
+				result.min = pixelNumber;
+			}
 		}
 	}
 }
@@ -646,7 +666,7 @@ void MLX90640::extractAlphaParameters(const uint16_t *eeData) noexcept {
 	uint8_t accRowScale;
 	uint8_t accColumnScale;
 	uint8_t accRemScale;
-	float alphaTemp[768];
+	float alphaTemp[PIXELS];
 	float temp;
 
 	accRemScale = MLX90640_NIBBLE1(eeData[32]);
@@ -784,7 +804,7 @@ void MLX90640::extractKtaPixelParameters(const uint16_t *eeData) noexcept {
 	uint8_t ktaScale1;
 	uint8_t ktaScale2;
 	uint8_t split;
-	float ktaTemp[768];
+	float ktaTemp[PIXELS];
 	float temp;
 
 	KtaRC[0] = (int8_t) MLX90640_MS_BYTE(eeData[54]);
@@ -849,7 +869,7 @@ void MLX90640::extractKvPixelParameters(const uint16_t *eeData) noexcept {
 	int8_t KvReCe;
 	uint8_t kvScale;
 	uint8_t split;
-	float kvTemp[768];
+	float kvTemp[PIXELS];
 	float temp;
 
 	KvRoCo = MLX90640_NIBBLE4(eeData[52]);

@@ -117,7 +117,7 @@ struct MLX90640Data {
 /**
  * MLX90640 IR thermal camera driver.
  */
-class MLX90640: public MLX9064x {
+class MLX90640: protected MLX9064x {
 public:
 	/**
 	 * Constructor: initializes the device.

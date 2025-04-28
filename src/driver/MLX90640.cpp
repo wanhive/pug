@@ -209,8 +209,6 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 
 	auto frameData = frame.data;
 	result.page = getSubPage(frame);
-	result.max = PIXELS;
-	result.min = PIXELS;
 	subPage = result.page;
 	vdd = frame.vdd;
 	ta = frame.ta;
@@ -328,14 +326,6 @@ void MLX90640::getTemperature(const MLX90640Frame &frame, float emissivity,
 											+ taTr)) - 273.15;
 
 			result.data[pixelNumber] = To;
-
-			if ((result.max == PIXELS) || (To > result.data[result.max])) {
-				result.max = pixelNumber;
-			}
-
-			if ((result.min == PIXELS) || (To <= result.data[result.min])) {
-				result.min = pixelNumber;
-			}
 		}
 	}
 }
@@ -362,8 +352,6 @@ void MLX90640::getImage(const MLX90640Frame &frame,
 
 	auto frameData = frame.data;
 	result.page = getSubPage(frame);
-	result.max = PIXELS;
-	result.min = PIXELS;
 	subPage = result.page;
 	vdd = frame.vdd;
 	ta = frame.ta;
@@ -430,14 +418,6 @@ void MLX90640::getImage(const MLX90640Frame &frame,
 			image = irData * alphaCompensated;
 
 			result.data[pixelNumber] = image;
-
-			if ((result.max == PIXELS) || (image > result.data[result.max])) {
-				result.max = pixelNumber;
-			}
-
-			if ((result.min == PIXELS) || (image <= result.data[result.min])) {
-				result.min = pixelNumber;
-			}
 		}
 	}
 }

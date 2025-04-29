@@ -473,21 +473,26 @@ void BME68x::getConfiguration(BME68xConfig &config) const {
 	uint8_t data_array[BME68X_LEN_CONFIG];
 
 	SMBus::read(reg_addr, 5, data_array);
-	config.os.humidity = BME68X_GET_BITS_POS_0(data_array[1], BME68X_OSH);
-	config.filter = BME68X_GET_BITS(data_array[4], BME68X_FILTER);
-	config.os.temperature = BME68X_GET_BITS(data_array[3], BME68X_OST);
-	config.os.pressure = BME68X_GET_BITS(data_array[3], BME68X_OSP);
+	config.osr.humidity = static_cast<BME68XOverSampling>(BME68X_GET_BITS_POS_0(
+			data_array[1], BME68X_OSH));
+	config.osr.temperature = static_cast<BME68XOverSampling>(BME68X_GET_BITS(
+			data_array[3], BME68X_OST));
+	config.osr.pressure = static_cast<BME68XOverSampling>(BME68X_GET_BITS(
+			data_array[3], BME68X_OSP));
+	config.filter = static_cast<BME68XFilter>(BME68X_GET_BITS(data_array[4],
+			BME68X_FILTER));
 	if (BME68X_GET_BITS(data_array[0], BME68X_ODR3)) {
-		config.odr = ODR_NONE;
+		config.standby = BME68X_SB_NONE;
 	} else {
-		config.odr = BME68X_GET_BITS(data_array[4], BME68X_ODR20);
+		config.standby = static_cast<BME68XStandBy>(BME68X_GET_BITS(
+				data_array[4], BME68X_ODR20));
 	}
 }
 
 void BME68x::setConfiguration(const BME68xConfig &config) {
 	auto cfg = config;
 	uint8_t odr20 = 0, odr3 = 1;
-	uint8_t current_op_mode;
+	BME68XMode current_op_mode;
 
 	/* Register data starting from BME68X_REG_CTRL_GAS_1(0x71) up to BME68X_REG_CONFIG(0x75) */
 	uint8_t reg_array[BME68X_LEN_CONFIG] = { 0x71, 0x72, 0x73, 0x74, 0x75 };
@@ -495,25 +500,21 @@ void BME68x::setConfiguration(const BME68xConfig &config) {
 
 	current_op_mode = getOperationMode();
 	/* Configure only in the sleep mode */
-	setOperationMode(MODE_SLEEP);
+	setOperationMode(BME68X_MODE_SLEEP);
 
 	/* Read the whole configuration and write it back once later */
 	SMBus::read(reg_array[0], BME68X_LEN_CONFIG, data_array);
 	dev.info = BME68X_OK;
-	boundaryCheck(cfg.filter, (unsigned char) FILTER_SIZE_127);
-	boundaryCheck(cfg.os.temperature, OS_16X);
-	boundaryCheck(cfg.os.pressure, OS_16X);
-	boundaryCheck(cfg.os.humidity, OS_16X);
-	boundaryCheck(cfg.odr, ODR_NONE);
 
 	data_array[4] = BME68X_SET_BITS(data_array[4], BME68X_FILTER, cfg.filter);
 	data_array[3] = BME68X_SET_BITS(data_array[3], BME68X_OST,
-			cfg.os.temperature);
-	data_array[3] = BME68X_SET_BITS(data_array[3], BME68X_OSP, cfg.os.pressure);
+			cfg.osr.temperature);
+	data_array[3] = BME68X_SET_BITS(data_array[3], BME68X_OSP,
+			cfg.osr.pressure);
 	data_array[1] = BME68X_SET_BITS_POS_0(data_array[1], BME68X_OSH,
-			cfg.os.humidity);
-	if (cfg.odr != ODR_NONE) {
-		odr20 = cfg.odr;
+			cfg.osr.humidity);
+	if (cfg.standby != BME68X_SB_NONE) {
+		odr20 = cfg.standby;
 		odr3 = 0;
 	}
 
@@ -521,7 +522,7 @@ void BME68x::setConfiguration(const BME68xConfig &config) {
 	data_array[0] = BME68X_SET_BITS(data_array[0], BME68X_ODR3, odr3);
 
 	writeRegisters(reg_array, data_array, BME68X_LEN_CONFIG);
-	if ((current_op_mode != MODE_SLEEP)) {
+	if ((current_op_mode != BME68X_MODE_SLEEP)) {
 		setOperationMode(current_op_mode);
 	}
 }
@@ -550,18 +551,18 @@ void BME68x::getHeaterConfiguration(BME68xHeaterConfig &config) const {
 	}
 }
 
-void BME68x::setHeaterConfiguration(unsigned char opMode,
+void BME68x::setHeaterConfiguration(BME68XMode opMode,
 		const BME68xHeaterConfig &config) {
 	uint8_t nb_conv = 0;
 	uint8_t hctrl, run_gas = 0;
 	uint8_t ctrl_gas_data[2];
 	uint8_t ctrl_gas_addr[2] = { BME68X_REG_CTRL_GAS_0, BME68X_REG_CTRL_GAS_1 };
 
-	setOperationMode(MODE_SLEEP);
+	setOperationMode(BME68X_MODE_SLEEP);
 	configureHeater(config, opMode, nb_conv);
 
 	SMBus::read(BME68X_REG_CTRL_GAS_0, 2, ctrl_gas_data);
-	if (config.enable == SW_ENABLE) {
+	if (config.enable) {
 		hctrl = BME68X_ENABLE_HEATER;
 		if (dev.variantId == VARIANT_GAS_HIGH) {
 			run_gas = BME68X_ENABLE_GAS_MEAS_H;
@@ -581,30 +582,23 @@ void BME68x::setHeaterConfiguration(unsigned char opMode,
 	writeRegisters(ctrl_gas_addr, ctrl_gas_data, 2);
 }
 
-unsigned int BME68x::getMeasurementDuration(const unsigned char opMode,
+unsigned int BME68x::getMeasurementDuration(BME68XMode opMode,
 		const BME68xConfig &config) noexcept {
 	uint32_t meas_dur = 0; /* Calculate in us */
 	uint32_t meas_cycles;
 	uint8_t os_to_meas_cycles[6] = { 0, 1, 2, 4, 8, 16 };
 	auto conf = config;
 
-	/* Boundary check for temperature oversampling */
-	boundaryCheck(conf.os.temperature, OS_16X);
-	/* Boundary check for pressure oversampling */
-	boundaryCheck(conf.os.pressure, OS_16X);
-	/* Boundary check for humidity oversampling */
-	boundaryCheck(conf.os.humidity, OS_16X);
-
-	meas_cycles = os_to_meas_cycles[conf.os.temperature];
-	meas_cycles += os_to_meas_cycles[conf.os.pressure];
-	meas_cycles += os_to_meas_cycles[conf.os.humidity];
+	meas_cycles = os_to_meas_cycles[conf.osr.temperature];
+	meas_cycles += os_to_meas_cycles[conf.osr.pressure];
+	meas_cycles += os_to_meas_cycles[conf.osr.humidity];
 
 	/* TPH measurement duration */
 	meas_dur = meas_cycles * UINT32_C(1963);
 	meas_dur += UINT32_C(477 * 4); /* TPH switching duration */
 	meas_dur += UINT32_C(477 * 5); /* Gas measurement duration */
 
-	if (opMode != MODE_PARALLEL) {
+	if (opMode != BME68X_MODE_PARALLEL) {
 		meas_dur += UINT32_C(1000); /* Wake up duration of 1ms */
 	}
 
@@ -655,13 +649,13 @@ unsigned int BME68x::getData(BME68xData (&data)[3]) {
 
 }
 
-unsigned char BME68x::getOperationMode() const {
+BME68XMode BME68x::getOperationMode() const {
 
 	auto mode = SMBus::readByte(BME68X_REG_CTRL_MEAS);
-	return mode & BME68X_MODE_MSK;
+	return static_cast<BME68XMode>(mode & BME68X_MODE_MSK);
 }
 
-void BME68x::setOperationMode(unsigned char mode) const {
+void BME68x::setOperationMode(BME68XMode mode) const {
 	uint8_t tmp_pow_mode;
 	uint8_t pow_mode = 0;
 	uint8_t reg_addr = BME68X_REG_CTRL_MEAS;
@@ -671,15 +665,15 @@ void BME68x::setOperationMode(unsigned char mode) const {
 		tmp_pow_mode = SMBus::readByte(BME68X_REG_CTRL_MEAS);
 		/* Put to sleep before changing mode */
 		pow_mode = (tmp_pow_mode & BME68X_MODE_MSK);
-		if (pow_mode != MODE_SLEEP) {
+		if (pow_mode != BME68X_MODE_SLEEP) {
 			tmp_pow_mode &= ~BME68X_MODE_MSK; /* Set to sleep */
 			SMBus::write(reg_addr, tmp_pow_mode);
 			Timer::sleep(BME68X_PERIOD_POLL / 1000);
 		}
-	} while (pow_mode != MODE_SLEEP);
+	} while (pow_mode != BME68X_MODE_SLEEP);
 
 	/* Already in sleep */
-	if ((mode != MODE_SLEEP)) {
+	if ((mode != BME68X_MODE_SLEEP)) {
 		tmp_pow_mode = (tmp_pow_mode & ~BME68X_MODE_MSK)
 				| (mode & BME68X_MODE_MSK);
 		SMBus::write(reg_addr, tmp_pow_mode);
@@ -761,7 +755,7 @@ void BME68x::configureHeater(const BME68xHeaterConfig &config,
 	uint8_t gw_reg_data[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	switch (opMode) {
-	case MODE_FORCED:
+	case BME68X_MODE_FORCED:
 		rh_reg_addr[0] = BME68X_REG_RES_HEAT0;
 		rh_reg_data[0] = calculateHeaterResistance(config.temperature);
 		gw_reg_addr[0] = BME68X_REG_GAS_WAIT0;
@@ -769,7 +763,7 @@ void BME68x::configureHeater(const BME68xHeaterConfig &config,
 		nConv = 0;
 		write_len = 1;
 		break;
-	case MODE_SEQUENTIAL:
+	case BME68X_MODE_SEQUENTIAL:
 		if ((!config.profile.duration) || (!config.profile.temperature)
 				|| (config.profile.length > 10)) {
 			throw Exception(EX_ARGUMENT);
@@ -786,7 +780,7 @@ void BME68x::configureHeater(const BME68xHeaterConfig &config,
 		nConv = config.profile.length;
 		write_len = config.profile.length;
 		break;
-	case MODE_PARALLEL:
+	case BME68X_MODE_PARALLEL:
 		if ((!config.profile.duration) || (!config.profile.temperature)
 				|| (config.profile.length > 10)) {
 			throw Exception(EX_ARGUMENT);

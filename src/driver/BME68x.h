@@ -63,22 +63,71 @@
 
 namespace wanhive {
 /**
+ * Oversampling setting
+ */
+enum BME68XOverSampling : unsigned char {
+	BME68X_OS_NONE = (0),/**< Switch off measurement */
+	BME68X_OS_1X = (1), /**< Perform 1 measurement */
+	BME68X_OS_2X = (2), /**< Perform 2 measurements */
+	BME68X_OS_4X = (3), /**< Perform 4 measurements */
+	BME68X_OS_8X = (4), /**< Perform 8 measurements */
+	BME68X_OS_16X = (5) /**< Perform 16 measurements */
+};
+/**
+ * IIR Filter settings
+ */
+enum BME68XFilter : unsigned char {
+	BME68X_FILTER_OFF = (0), /**< Switch off the filter */
+	BME68X_FILTER_SIZE_1 = (1), /**< Filter coefficient of 2 */
+	BME68X_FILTER_SIZE_3 = (2), /**< Filter coefficient of 4 */
+	BME68X_FILTER_SIZE_7 = (3), /**< Filter coefficient of 8 */
+	BME68X_FILTER_SIZE_15 = (4),/**< Filter coefficient of 16 */
+	BME68X_FILTER_SIZE_31 = (5),/**< Filter coefficient of 32 */
+	BME68X_FILTER_SIZE_63 = (6),/**< Filter coefficient of 64 */
+	BME68X_FILTER_SIZE_127 = (7)/**< Filter coefficient of 128 */
+};
+
+/**
+ * ODR/Standby time
+ */
+enum BME68XStandBy : unsigned char {
+	BME68X_SB_0_59_MS = (0),/**< Standby time of 0.59ms */
+	BME68X_SB_62_5_MS = (1),/**< BStandby time of 62.5ms */
+	BME68X_SB_125_MS = (2),/**< Standby time of 125ms */
+	BME68X_SB_250_MS = (3),/**< Standby time of 250ms */
+	BME68X_SB_500_MS = (4),/**< Standby time of 500ms */
+	BME68X_SB_1000_MS = (5),/**< Standby time of 1s */
+	BME68X_SB_10_MS = (6),/**< Standby time of 10ms */
+	BME68X_SB_20_MS = (7),/**< Standby time of 20ms */
+	BME68X_SB_NONE = (8) /**< No standby time */
+};
+
+/**
+ * Operating modes
+ */
+enum BME68XMode : unsigned char {
+	BME68X_MODE_SLEEP = (0), /**< Sleep operation mode */
+	BME68X_MODE_FORCED = (1), /**< Forced operation mode */
+	BME68X_MODE_PARALLEL = (2), /**< Parallel operation mode */
+	BME68X_MODE_SEQUENTIAL = (3)/**< Sequential operation mode */
+};
+/**
  * Over-sampling and filter settings.
  */
 struct BME68xConfig {
 	struct {
 		/*! Humidity over-sampling */
-		unsigned char humidity;
+		BME68XOverSampling humidity;
 		/*! Temperature over-sampling */
-		unsigned char temperature;
+		BME68XOverSampling temperature;
 		/*! Pressure over-sampling */
-		unsigned char pressure;
-	} os;
+		BME68XOverSampling pressure;
+	} osr;
 
 	/*! Filter coefficient */
-	unsigned char filter;
+	BME68XFilter filter;
 	/*! Standby time between sequential mode measurement profiles */
-	unsigned char odr;
+	BME68XStandBy standby;
 };
 
 /**
@@ -86,7 +135,7 @@ struct BME68xConfig {
  */
 struct BME68xHeaterConfig {
 	/*! Enable gas measurement */
-	unsigned char enable;
+	bool enable;
 	/*! Heater temperature for forced mode degree Celsius */
 	unsigned short temperature;
 	/*! Heating duration for forced mode in milliseconds */
@@ -183,7 +232,7 @@ public:
 	 * @param opMode desired operation mode
 	 * @param config new configuration data
 	 */
-	void setHeaterConfiguration(unsigned char opMode,
+	void setHeaterConfiguration(BME68XMode opMode,
 			const BME68xHeaterConfig &config);
 	/**
 	 * Returns the remaining duration that can be used for heating.
@@ -191,7 +240,7 @@ public:
 	 * @param conf sensor's configuration data
 	 * @return duration in microseconds
 	 */
-	unsigned int getMeasurementDuration(const unsigned char opMode,
+	unsigned int getMeasurementDuration(BME68XMode opMode,
 			const BME68xConfig &conf) noexcept;
 	/**
 	 * Returns sensor data in the forced mode.
@@ -209,12 +258,12 @@ public:
 	 * Reads sensor's current operation mode.
 	 * @return operation mode
 	 */
-	unsigned char getOperationMode() const;
+	BME68XMode getOperationMode() const;
 	/**
 	 * Sets sensor's operation mode.
 	 * @param mode desired operation mode
 	 */
-	void setOperationMode(unsigned char mode) const;
+	void setOperationMode(BME68XMode mode) const;
 	/**
 	 * Sets the ambient temperature for defining the heater temperature.
 	 * @param temperature ambient temperature
@@ -254,63 +303,6 @@ public:
 	static constexpr unsigned char I2C_ADDR_LOW = (0x76);
 	/*! BME68X higher I2C address */
 	static constexpr unsigned char I2C_ADDR_HIGH = (0x77);
-
-	/**
-	 * Enable/Disable
-	 */
-	enum Switch : unsigned char {
-		SW_ENABLE = (0x01),/**< Enable */
-		SW_DISABLE = (0x00)/**< Disable */
-	};
-	/**
-	 * Oversampling setting
-	 */
-	enum Oversampling : unsigned char {
-		OS_NONE = (0),/**< Switch off measurement */
-		OS_1X = (1), /**< Perform 1 measurement */
-		OS_2X = (2), /**< Perform 2 measurements */
-		OS_4X = (3), /**< Perform 4 measurements */
-		OS_8X = (4), /**< Perform 8 measurements */
-		OS_16X = (5) /**< Perform 16 measurements */
-	};
-	/**
-	 * IIR Filter settings
-	 */
-	enum Filter : unsigned char {
-		FILTER_OFF = (0), /**< Switch off the filter */
-		FILTER_SIZE_1 = (1), /**< Filter coefficient of 2 */
-		FILTER_SIZE_3 = (2), /**< Filter coefficient of 4 */
-		FILTER_SIZE_7 = (3), /**< Filter coefficient of 8 */
-		FILTER_SIZE_15 = (4),/**< Filter coefficient of 16 */
-		FILTER_SIZE_31 = (5),/**< Filter coefficient of 32 */
-		FILTER_SIZE_63 = (6),/**< Filter coefficient of 64 */
-		FILTER_SIZE_127 = (7)/**< Filter coefficient of 128 */
-	};
-
-	/**
-	 * ODR/Standby time
-	 */
-	enum Standby : unsigned char {
-		ODR_0_59_MS = (0),/**< Standby time of 0.59ms */
-		ODR_62_5_MS = (1),/**< BStandby time of 62.5ms */
-		ODR_125_MS = (2),/**< Standby time of 125ms */
-		ODR_250_MS = (3),/**< Standby time of 250ms */
-		ODR_500_MS = (4),/**< Standby time of 500ms */
-		ODR_1000_MS = (5),/**< Standby time of 1s */
-		ODR_10_MS = (6),/**< Standby time of 10ms */
-		ODR_20_MS = (7),/**< Standby time of 20ms */
-		ODR_NONE = (8) /**< No standby time */
-	};
-
-	/**
-	 * Operating modes
-	 */
-	enum Mode : unsigned char {
-		MODE_SLEEP = (0), /**< Sleep operation mode */
-		MODE_FORCED = (1), /**< Forced operation mode */
-		MODE_PARALLEL = (2), /**< Parallel operation mode */
-		MODE_SEQUENTIAL = (3)/**< Sequential operation mode */
-	};
 private:
 	struct {
 		unsigned char chipId;

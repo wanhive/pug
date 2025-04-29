@@ -190,21 +190,22 @@ void BME280::reset() const {
 	}
 }
 
-void BME280::getConfiguration(BME280Config &conf) {
+void BME280::getConfiguration(BME280Config &conf) const {
 	uint8_t reg_data[4];
 	SMBus::read(BME280_REG_CTRL_HUM, 4, reg_data);
 	parseConfiguration(reg_data, conf);
 }
 
-void BME280::setConfiguration(const BME280Config &conf) {
+void BME280::setConfiguration(const BME280Config &conf) const {
 	setConfiguration(conf, SEL_ALL_SETTINGS);
 }
 
-void BME280::setConfiguration(const BME280Config &conf, unsigned char what) {
+void BME280::setConfiguration(const BME280Config &conf,
+		unsigned char what) const {
 	uint8_t sensor_mode;
 	sensor_mode = getPowerMode();
 
-	if (sensor_mode != POWERMODE_SLEEP) {
+	if (sensor_mode != BME280_MODE_SLEEP) {
 		sleep();
 	}
 
@@ -223,20 +224,19 @@ void BME280::setConfiguration(const BME280Config &conf, unsigned char what) {
 	}
 }
 
-unsigned char BME280::getPowerMode() {
+BME280Mode BME280::getPowerMode() const {
 	/* Read the power mode register */
 	auto mode = SMBus::readByte(BME280_REG_PWR_CTRL);
 	/* Return the power mode */
-	return BME280_GET_BITS_POS_0(mode, BME280_SENSOR_MODE);
+	return static_cast<BME280Mode>(BME280_GET_BITS_POS_0(mode,
+			BME280_SENSOR_MODE));
 }
 
-void BME280::setPowerMode(unsigned char mode) {
-	uint8_t last_set_mode = getPowerMode();
-
+void BME280::setPowerMode(BME280Mode mode) const {
 	/* If the sensor is not in sleep mode put the device to sleep
 	 * mode
 	 */
-	if (last_set_mode != POWERMODE_SLEEP) {
+	if (getPowerMode() != BME280_MODE_SLEEP) {
 		sleep();
 	}
 
@@ -256,17 +256,17 @@ void BME280::getData(BME280Data &data, unsigned char what) {
 	 * the sensor
 	 */
 	uint8_t reg_data[BME280_LEN_P_T_H_DATA] = { 0 };
-	raw = { 0, 0, 0 };
+	BME280RawData raw = { 0, 0, 0 };
 
 	/* Read the pressure and temperature data from the sensor */
 	SMBus::read(BME280_REG_DATA, BME280_LEN_P_T_H_DATA, reg_data);
 	/* Parse the read data from the sensor */
-	parseRawData(reg_data);
+	parseRawData(reg_data, raw);
 
 	/* Compensate the pressure and/or temperature and/or
 	 * humidity data from the sensor
 	 */
-	compensate(what, data);
+	compensate(what, raw, data);
 }
 
 unsigned BME280::calculateDelay(const BME280Config &conf) const noexcept {
@@ -278,22 +278,22 @@ unsigned BME280::calculateDelay(const BME280Config &conf) const noexcept {
 	uint8_t osr_sett_to_act_osr[] = { 0, 1, 2, 4, 8, 16 };
 
 	/* Mapping osr settings to the actual osr values e.g. 0b101 -> osr X16 */
-	if (conf.os.temperature <= OVERSAMPLING_16X) {
-		temp_osr = osr_sett_to_act_osr[conf.os.temperature];
+	if (conf.osr.temperature <= BME280_OS_16X) {
+		temp_osr = osr_sett_to_act_osr[conf.osr.temperature];
 	} else {
-		temp_osr = OVERSAMPLING_MAX;
+		temp_osr = BME280_OS_MAX;
 	}
 
-	if (conf.os.pressure <= OVERSAMPLING_16X) {
-		pres_osr = osr_sett_to_act_osr[conf.os.pressure];
+	if (conf.osr.pressure <= BME280_OS_16X) {
+		pres_osr = osr_sett_to_act_osr[conf.osr.pressure];
 	} else {
-		pres_osr = OVERSAMPLING_MAX;
+		pres_osr = BME280_OS_MAX;
 	}
 
-	if (conf.os.humidity <= OVERSAMPLING_16X) {
-		hum_osr = osr_sett_to_act_osr[conf.os.humidity];
+	if (conf.osr.humidity <= BME280_OS_16X) {
+		hum_osr = osr_sett_to_act_osr[conf.osr.humidity];
 	} else {
-		hum_osr = OVERSAMPLING_MAX;
+		hum_osr = BME280_OS_MAX;
 	}
 
 	return (uint32_t) ((BME280_MEAS_OFFSET + (BME280_MEAS_DUR * temp_osr)
@@ -301,7 +301,8 @@ unsigned BME280::calculateDelay(const BME280Config &conf) const noexcept {
 			+ ((BME280_MEAS_DUR * hum_osr) + BME280_PRES_HUM_MEAS_OFFSET)));
 }
 
-void BME280::compensate(unsigned char what, BME280Data &result) {
+void BME280::compensate(unsigned char what, const BME280RawData &raw,
+		BME280Data &result) noexcept {
 	/* Initialize to zero */
 	result.temperature = 0;
 	result.pressure = 0;
@@ -310,17 +311,17 @@ void BME280::compensate(unsigned char what, BME280Data &result) {
 	/* If pressure or temperature component is selected */
 	if (what & (SENSE_PRESSURE | SENSE_TEMPERATURE | SENSE_HUMIDITY)) {
 		/* Compensate the temperature data */
-		result.temperature = compensateTemperature();
+		result.temperature = compensateTemperature(raw);
 	}
 
 	if (what & SENSE_PRESSURE) {
 		/* Compensate the pressure data */
-		result.pressure = compensatePressure();
+		result.pressure = compensatePressure(raw);
 	}
 
 	if (what & SENSE_HUMIDITY) {
 		/* Compensate the humidity data */
-		result.humidity = compensateHumidity();
+		result.humidity = compensateHumidity(raw);
 	}
 }
 
@@ -398,15 +399,22 @@ void BME280::writePowerMode(unsigned char mode) const {
 void BME280::parseConfiguration(const unsigned char *data,
 		BME280Config &conf) const noexcept {
 	if (data) {
-		conf.os.humidity = BME280_GET_BITS_POS_0(data[0], BME280_CTRL_HUM);
-		conf.os.pressure = BME280_GET_BITS(data[2], BME280_CTRL_PRESS);
-		conf.os.temperature = BME280_GET_BITS(data[2], BME280_CTRL_TEMP);
-		conf.filter = BME280_GET_BITS(data[3], BME280_FILTER);
-		conf.standby = BME280_GET_BITS(data[3], BME280_STANDBY);
+		conf.osr.humidity =
+				static_cast<BME280OverSampling>(BME280_GET_BITS_POS_0(data[0],
+						BME280_CTRL_HUM));
+		conf.osr.pressure = static_cast<BME280OverSampling>(BME280_GET_BITS(
+				data[2], BME280_CTRL_PRESS));
+		conf.osr.temperature = static_cast<BME280OverSampling>(BME280_GET_BITS(
+				data[2], BME280_CTRL_TEMP));
+		conf.filter = static_cast<BME280Filter>(BME280_GET_BITS(data[3],
+				BME280_FILTER));
+		conf.standby = static_cast<BME280StandBy>(BME280_GET_BITS(data[3],
+				BME280_STANDBY));
 	}
 }
 
-void BME280::parseRawData(const unsigned char *data) noexcept {
+void BME280::parseRawData(const unsigned char *data,
+		BME280RawData &raw) const noexcept {
 	if (!data) {
 		return;
 	}
@@ -474,7 +482,7 @@ void BME280::setHumidityOSR(const BME280Config &conf) const {
 	uint8_t ctrl_meas;
 	uint8_t reg_addr = BME280_REG_CTRL_HUM;
 
-	ctrl_hum = conf.os.humidity & BME280_CTRL_HUM_MSK;
+	ctrl_hum = conf.osr.humidity & BME280_CTRL_HUM_MSK;
 
 	/* Write the humidity control value in the register */
 	SMBus::write(reg_addr, ctrl_hum);
@@ -496,19 +504,19 @@ void BME280::setTempPresOSR(unsigned char desired,
 
 	if (desired & SEL_OSR_PRESS) {
 		reg_data = BME280_SET_BITS(reg_data, BME280_CTRL_PRESS,
-				conf.os.pressure);
+				conf.osr.pressure);
 	}
 
 	if (desired & SEL_OSR_TEMP) {
 		reg_data = BME280_SET_BITS(reg_data, BME280_CTRL_TEMP,
-				conf.os.temperature);
+				conf.osr.temperature);
 	}
 
 	/* Write the oversampling settings in the register */
 	SMBus::write(reg_addr, reg_data);
 }
 
-int BME280::compensateTemperature() noexcept {
+int BME280::compensateTemperature(const BME280RawData &raw) noexcept {
 	int32_t var1;
 	int32_t var2;
 	int32_t temperature;
@@ -531,7 +539,7 @@ int BME280::compensateTemperature() noexcept {
 	return temperature;
 }
 
-unsigned BME280::compensatePressure() const noexcept {
+unsigned BME280::compensatePressure(const BME280RawData &raw) const noexcept {
 	int32_t var1;
 	int32_t var2;
 	int32_t var3;
@@ -580,7 +588,7 @@ unsigned BME280::compensatePressure() const noexcept {
 	return pressure;
 }
 
-unsigned BME280::compensateHumidity() const noexcept {
+unsigned BME280::compensateHumidity(const BME280RawData &raw) const noexcept {
 	int32_t var1;
 	int32_t var2;
 	int32_t var3;

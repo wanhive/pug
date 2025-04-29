@@ -62,26 +62,83 @@
 
 namespace wanhive {
 /**
+ * Sensor power modes.
+ */
+enum BME280Mode : unsigned char {
+	BME280_MODE_SLEEP = (0x00), /**< Sleep mode */
+	BME280_MODE_FORCED = (0x01),/**< Forced mode */
+	BME280_MODE_NORMAL = (0x03) /**< Normal mode */
+};
+
+/**
+ * Oversampling rates.
+ */
+enum BME280OverSampling : unsigned char {
+	BME280_OS_NONE = (0x00), /**< Skip */
+	BME280_OS_1X = (0x01), /**< Perform 1 measurement */
+	BME280_OS_2X = (0x02), /**< Perform 2 measurements */
+	BME280_OS_4X = (0x03), /**< Perform 4 measurements */
+	BME280_OS_8X = (0x04), /**< Perform 8 measurements */
+	BME280_OS_16X = (0x05),/**< Perform 16 measurements */
+	BME280_OS_MAX = (16) /**< For internal use */
+};
+/**
+ * Filter coefficients.
+ */
+enum BME280Filter : unsigned char {
+	BME280_FILTER_OFF = (0x00),/**< Switch off the filter */
+	BME280_FILTER_2 = (0x01), /**< Filter coefficient of 2 */
+	BME280_FILTER_4 = (0x02), /**< Filter coefficient of 4 */
+	BME280_FILTER_8 = (0x03), /**< Filter coefficient of 8 */
+	BME280_FILTER_16 = (0x04) /**< Filter coefficient of 16 */
+};
+/**
+ * Standby durations (normal mode).
+ */
+enum BME280StandBy : unsigned char {
+	BME280_SB_0_5_MS = (0x00), /**< Standby time of 0.5 ms */
+	BME280_SB_62_5_MS = (0x01),/**< Standby time of 62.5 ms */
+	BME280_SB_125_MS = (0x02), /**< Standby time of 125 ms */
+	BME280_SB_250_MS = (0x03), /**< Standby time of 250 ms */
+	BME280_SB_500_MS = (0x04), /**< Standby time of 500 ms */
+	BME280_SB_1000_MS = (0x05),/**< Standby time of 1s */
+	BME280_SB_10_MS = (0x06), /**< Standby time of 10ms */
+	BME280_SB_20_MS = (0x07) /**< Standby time of 20ms */
+};
+
+/**
  * Over-sampling and filter settings.
  */
 struct BME280Config {
 	struct {
 		/*! Pressure over-sampling */
-		unsigned char pressure;
+		BME280OverSampling pressure;
 		/*! Temperature over-sampling */
-		unsigned char temperature;
+		BME280OverSampling temperature;
 		/*! Humidity over-sampling */
-		unsigned char humidity;
-	} os;
+		BME280OverSampling humidity;
+	} osr;
 
 	/*! Filter coefficient */
-	unsigned char filter;
+	BME280Filter filter;
 	/*! Standby time */
-	unsigned char standby;
+	BME280StandBy standby;
 };
 
 /**
- * Sensor data (temperature, pressure, and humidity).
+ * Raw sensor data.
+ */
+struct BME280RawData {
+	/*! Pressure */
+	unsigned pressure;
+	/*! Temperature */
+	unsigned temperature;
+	/*! Humidity */
+	unsigned humidity;
+};
+
+/**
+ * Compensated sensor data.
  */
 struct BME280Data {
 	/*! Compensated pressure: Pascal */
@@ -127,28 +184,28 @@ public:
 	 * Reads sensor's configuration data.
 	 * @param conf stores the configuration data
 	 */
-	void getConfiguration(BME280Config &conf);
+	void getConfiguration(BME280Config &conf) const;
 	/**
 	 * Writes new configuration data to the sensor.
 	 * @param conf configuration data
 	 */
-	void setConfiguration(const BME280Config &conf);
+	void setConfiguration(const BME280Config &conf) const;
 	/**
 	 * Writes new configuration data to the sensor.
 	 * @param conf configuration data
 	 * @param what settings selector
 	 */
-	void setConfiguration(const BME280Config &conf, unsigned char what);
+	void setConfiguration(const BME280Config &conf, unsigned char what) const;
 	/**
 	 * Reads sensor's power mode.
 	 * @return power mode
 	 */
-	unsigned char getPowerMode();
+	BME280Mode getPowerMode() const;
 	/**
 	 * Writes new power mode to the sensor.
 	 * @param mode power mode
 	 */
-	void setPowerMode(unsigned char mode);
+	void setPowerMode(BME280Mode mode) const;
 	/**
 	 * Reads the status register's value.
 	 * @return status code
@@ -173,22 +230,24 @@ public:
 	 */
 	unsigned calculateDelay(const BME280Config &conf) const noexcept;
 private:
-	void compensate(unsigned char what, BME280Data &result);
+	void compensate(unsigned char what, const BME280RawData &raw,
+			BME280Data &result) noexcept;
 	void calibrate();
 	void sleep() const;
 	void writePowerMode(unsigned char mode) const;
 	void parseConfiguration(const unsigned char *data,
 			BME280Config &conf) const noexcept;
-	void parseRawData(const unsigned char *data) noexcept;
+	void parseRawData(const unsigned char *data,
+			BME280RawData &raw) const noexcept;
 	void reload(const BME280Config &conf) const;
 	void setOversampling(unsigned char desired, const BME280Config &conf) const;
 	void setFilterAndStandby(unsigned char desired,
 			const BME280Config &conf) const;
 	void setHumidityOSR(const BME280Config &conf) const;
 	void setTempPresOSR(unsigned char desired, const BME280Config &conf) const;
-	int compensateTemperature() noexcept;
-	unsigned compensatePressure() const noexcept;
-	unsigned compensateHumidity() const noexcept;
+	int compensateTemperature(const BME280RawData &raw) noexcept;
+	unsigned compensatePressure(const BME280RawData &raw) const noexcept;
+	unsigned compensateHumidity(const BME280RawData &raw) const noexcept;
 public:
 	/*! BME280 chip identifier */
 	static constexpr unsigned char CHIP_ID = (0x60);
@@ -197,15 +256,7 @@ public:
 	/*! BME280 higher I2C address */
 	static constexpr unsigned char I2C_ADDR_SEC = (0x77);
 	/**
-	 * Sensor power modes
-	 */
-	enum Mode : unsigned char {
-		POWERMODE_SLEEP = (0x00), /**< Sleep mode */
-		POWERMODE_FORCED = (0x01),/**< Forced mode */
-		POWERMODE_NORMAL = (0x03) /**< Normal mode */
-	};
-	/**
-	 * Sensor component selection
+	 * Sensor component selection mask
 	 */
 	enum Component : unsigned char {
 		SENSE_PRESSURE = (0x01), /**< Pressure selector */
@@ -214,7 +265,7 @@ public:
 		SENSE_ALL = (0x07) /**< All components */
 	};
 	/**
-	 * Settings selection
+	 * Settings selection mask
 	 */
 	enum Settings : unsigned char {
 		SEL_OSR_PRESS = (1), /**< Pressure over-sampling */
@@ -225,42 +276,7 @@ public:
 		SEL_ALL_SETTINGS = (0x1F)/**< All settings */
 	};
 	/**
-	 * Oversampling
-	 */
-	enum Oversampling : unsigned char {
-		NO_OVERSAMPLING = (0x00), /**< Skip */
-		OVERSAMPLING_1X = (0x01), /**< Perform 1 measurement */
-		OVERSAMPLING_2X = (0x02), /**< Perform 2 measurements */
-		OVERSAMPLING_4X = (0x03), /**< Perform 4 measurements */
-		OVERSAMPLING_8X = (0x04), /**< Perform 8 measurements */
-		OVERSAMPLING_16X = (0x05),/**< Perform 16 measurements */
-		OVERSAMPLING_MAX = (16) /**< For internal use */
-	};
-	/**
-	 * Filter coefficient selection
-	 */
-	enum Filter : unsigned char {
-		FILTER_COEFF_OFF = (0x00),/**< Switch off the filter */
-		FILTER_COEFF_2 = (0x01), /**< Filter coefficient of 2 */
-		FILTER_COEFF_4 = (0x02), /**< Filter coefficient of 4 */
-		FILTER_COEFF_8 = (0x03), /**< Filter coefficient of 8 */
-		FILTER_COEFF_16 = (0x04) /**< Filter coefficient of 16 */
-	};
-	/**
-	 * Standby duration selection (normal mode)
-	 */
-	enum Standby : unsigned char {
-		STANDBY_TIME_0_5_MS = (0x00), /**< Standby time of 0.5 ms */
-		STANDBY_TIME_62_5_MS = (0x01),/**< Standby time of 62.5 ms */
-		STANDBY_TIME_125_MS = (0x02), /**< Standby time of 125 ms */
-		STANDBY_TIME_250_MS = (0x03), /**< Standby time of 250 ms */
-		STANDBY_TIME_500_MS = (0x04), /**< Standby time of 500 ms */
-		STANDBY_TIME_1000_MS = (0x05),/**< Standby time of 1s */
-		STANDBY_TIME_10_MS = (0x06), /**< Standby time of 10ms */
-		STANDBY_TIME_20_MS = (0x07) /**< Standby time of 20ms */
-	};
-	/**
-	 * Status codes
+	 * Status codes mask
 	 */
 	enum Status : unsigned char {
 		STATUS_IM_UPDATE = (0x01),/**< NVM data being copied */
@@ -270,12 +286,6 @@ private:
 	struct {
 		unsigned char chipId;
 	} dev;
-
-	struct {
-		unsigned pressure;
-		unsigned temperature;
-		unsigned humidity;
-	} raw;
 
 	struct {
 		unsigned short dig_t1;

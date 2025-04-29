@@ -221,7 +221,7 @@ public:
 	 * Writes new configuration data (over-sampling and filter) to the sensor.
 	 * @param config new configuration data
 	 */
-	void setConfiguration(const BME68xConfig &config);
+	void setConfiguration(const BME68xConfig &config) const;
 	/**
 	 * Reads the sensor's gas-heater settings.
 	 * @param config stores the configuration data
@@ -233,7 +233,7 @@ public:
 	 * @param config new configuration data
 	 */
 	void setHeaterConfiguration(BME68XMode opMode,
-			const BME68xHeaterConfig &config);
+			const BME68xHeaterConfig &config) const;
 	/**
 	 * Returns the remaining duration that can be used for heating.
 	 * @param opMode desired operation mode
@@ -289,7 +289,6 @@ private:
 	unsigned char calculateGasWait(unsigned short duration) const noexcept;
 	unsigned char calculateHeaterDurationShared(
 			unsigned short duration) const noexcept;
-	void boundaryCheck(unsigned char &value, unsigned char max) noexcept;
 	void writeRegisters(const unsigned char *commands,
 			const unsigned char *values, unsigned int length) const;
 public:
@@ -307,7 +306,6 @@ private:
 	struct {
 		unsigned char chipId;
 		unsigned char variantId;
-		unsigned char info;
 		char ambientTemperature;
 	} dev;
 

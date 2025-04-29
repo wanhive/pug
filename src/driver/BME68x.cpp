@@ -489,7 +489,7 @@ void BME68x::getConfiguration(BME68xConfig &config) const {
 	}
 }
 
-void BME68x::setConfiguration(const BME68xConfig &config) {
+void BME68x::setConfiguration(const BME68xConfig &config) const {
 	auto cfg = config;
 	uint8_t odr20 = 0, odr3 = 1;
 	BME68XMode current_op_mode;
@@ -504,7 +504,6 @@ void BME68x::setConfiguration(const BME68xConfig &config) {
 
 	/* Read the whole configuration and write it back once later */
 	SMBus::read(reg_array[0], BME68X_LEN_CONFIG, data_array);
-	dev.info = BME68X_OK;
 
 	data_array[4] = BME68X_SET_BITS(data_array[4], BME68X_FILTER, cfg.filter);
 	data_array[3] = BME68X_SET_BITS(data_array[3], BME68X_OST,
@@ -552,7 +551,7 @@ void BME68x::getHeaterConfiguration(BME68xHeaterConfig &config) const {
 }
 
 void BME68x::setHeaterConfiguration(BME68XMode opMode,
-		const BME68xHeaterConfig &config) {
+		const BME68xHeaterConfig &config) const {
 	uint8_t nb_conv = 0;
 	uint8_t hctrl, run_gas = 0;
 	uint8_t ctrl_gas_data[2];
@@ -958,15 +957,6 @@ void BME68x::sortSensorData(unsigned lowIndex, unsigned highIndex,
 		}
 	} else if (field[highIndex]->status & BME68X_NEW_DATA_MSK) {
 		swapFields(lowIndex, highIndex, field);
-	}
-}
-
-void BME68x::boundaryCheck(unsigned char &value, unsigned char max) noexcept {
-	/* Check if value is above maximum value */
-	if (value > max) {
-		/* Auto correct the invalid value to maximum value */
-		value = max;
-		dev.info |= BME68X_I_PARAM_CORR;
 	}
 }
 

@@ -1,6 +1,6 @@
 # Wanhive Pug
 
-Wanhive Pug is a secure and high-performance physical computing library coded in C++.
+Wanhive Pug is a secure and high-performance physical computing library written in C++.
 
 This program is a part of the Wanhive IoT Platform.
 

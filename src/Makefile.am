@@ -26,11 +26,12 @@ WH_PUG_TOP_HDRS = wanhive-pug.h
 # --- SOURCE FILES DECLARATIONS END ---
 
 lib_LTLIBRARIES = libwanhivepug.la
-libwanhivepug_la_CXXFLAGS = -Wall
+libwanhivepug_la_CXXFLAGS = -Wall @WHUB_CFLAGS@
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 libwanhivepug_la_LDFLAGS = -version-info @WH_LIB_VERSION@
 libwanhivepug_la_SOURCES = $(WH_PUG_TOP_HDRS) $(WH_PHY_HDRS) $(WH_DRIV_HDRS) \
 	$(WH_DEVICE_HDRS) $(WH_PHY_SRCS) $(WH_DRIV_SRCS) $(WH_DEVICE_SRCS)
+libwanhivepug_la_LIBADD = @WHUB_LIBS@
 
 # --- Library headers for installation ---
 wanhivepugtopdir=$(includedir)/wanhive

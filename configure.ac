@@ -26,8 +26,9 @@ AX_CXX_COMPILE_STDCXX(17, [noext], [mandatory])
 LT_INIT
 AC_CHECK_LIB([i2c], [i2c_smbus_process_call], , [AC_MSG_ERROR([libi2c not found.])])
 AC_CHECK_LIB([m], [sqrt], , [AC_MSG_ERROR([libm not found.])])
-# nm <lib>.so | grep <method_name>
-AC_CHECK_LIB([wanhive], [wh_pkg_version], , [AC_MSG_ERROR([libwanhive not found.])])
+
+# Check for packages.
+PKG_CHECK_MODULES([WHUB], [wanhive >= 10.0.0], , [AC_MSG_ERROR([wanhive not found.])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([sys/ioctl.h termios.h unistd.h], , [AC_MSG_ERROR([Header files missing.])])
@@ -45,7 +46,7 @@ AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memset select sqrt])
+AC_CHECK_FUNCS([memset pow select sqrt])
 
 AC_CONFIG_FILES([Makefile docs/Makefile src/Makefile src/wanhivepug.pc])
 AC_OUTPUT

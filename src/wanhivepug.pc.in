@@ -9,6 +9,6 @@ Description: Physical computing library
 URL: @PACKAGE_URL@
 Version: @VERSION@
 Requires.private: wanhive >= 10.0.0
-Cflags: -I${includedir}
+Cflags: -I${includedir}  @WHUB_CFLAGS@
 Libs: -L${libdir} -lwanhivepug
-Libs.private: -li2c -lm
+Libs.private: @WHUB_LIBS@ -lm -li2c

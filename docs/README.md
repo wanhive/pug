@@ -7,16 +7,19 @@ This program is a part of the Wanhive IoT Platform.
 ## Features
 
 Control GPIO pins and peripherals on single-board computers (SBCs) from user space.
- 
+
 - Digital I/O pins
 - I2C
 - SPI
 - Terminal and UART
+- MIPI cameras
 
 ## Dependencies
 
 - I2C userland development library (`libi2c`).
-- Wanhive Hub [development library](https://github.com/wanhive/hub)
+- JPEG image data format handling library (`libjpeg`).
+- Camera support library (`libcamera`).
+- Wanhive Hub [development library](https://github.com/wanhive/hub).
 
 # Installation
 

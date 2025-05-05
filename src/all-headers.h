@@ -41,5 +41,8 @@
 #include "physical/Terminal.h"
 #include "physical/TerminalConfig.h"
 #include "physical/UART.h"
+#include "vision/Image.h"
+#include "vision/Jpeg.h"
+#include "vision/ViewFinder.h"
 
 #endif /* WH_PUG_ALL_HEADERS_H_ */

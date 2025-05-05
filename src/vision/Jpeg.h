@@ -1,0 +1,72 @@
+/*
+ * Jpeg.h
+ *
+ * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
+ *
+ * SPDX License Identifier: GPL-3.0-or-later
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+#ifndef WH_VISION_JPEG_H_
+#define WH_VISION_JPEG_H_
+#include "Image.h"
+
+namespace wanhive {
+/**
+ * Raw image to JPEG converter.
+ * @note Supports YUV420, YUYV, and MJPG formats only.
+ */
+class Jpeg {
+public:
+	/**
+	 * Constructor: sets up the jpeg converter.
+	 * @param quality desired image quality [10%-100%]
+	 */
+	Jpeg(unsigned int quality = 90) noexcept;
+	~Jpeg();
+	/**
+	 * Returns the output image quality (%).
+	 * @return current image quality
+	 */
+	unsigned int getQuality() const noexcept;
+	/**
+	 * Sets the output image quality [10%-100%].
+	 * @param quality desired image quality
+	 */
+	void setQuality(unsigned int quality) noexcept;
+	/**
+	 * Converts raw image into a jpeg image.
+	 * @param input raw image as input
+	 * @param output jpeg image as output
+	 */
+	void convert(const RawImage &input, Image &output);
+private:
+	void fromYUYV(const RawImage &input, Image &output);
+	void fromYUV420(const RawImage &input, Image &output);
+	void fromMJPG(const RawImage &input, Image &output);
+	void provision(unsigned long capacity);
+private:
+	struct {
+		unsigned char *data { nullptr };
+		unsigned long capacity { 0 };
+		unsigned long used { 0 };
+		unsigned int quality { 0 };
+	} control;
+};
+
+} /* namespace wanhive */
+
+#endif /* WH_VISION_JPEG_H_ */

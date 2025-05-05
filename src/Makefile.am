@@ -20,18 +20,23 @@ WH_DRIV_SRCS = driver/ADS111x.cpp driver/BME280.cpp driver/BME68x.cpp \
 WH_DEVICE_HDRS = device/Gimbal.h device/PWM.h
 WH_DEVICE_SRCS = device/Gimbal.cpp device/PWM.cpp
 
+## src/vision
+WH_VISION_HDRS = vision/Image.h vision/Jpeg.h vision/ViewFinder.h
+WH_VISION_SRCS = vision/Jpeg.cpp vision/ViewFinder.cpp
+
 ## src/
 WH_PUG_TOP_HDRS = wanhive-pug.h
 
 # --- SOURCE FILES DECLARATIONS END ---
 
 lib_LTLIBRARIES = libwanhivepug.la
-libwanhivepug_la_CXXFLAGS = -Wall @WHUB_CFLAGS@
+libwanhivepug_la_CXXFLAGS = -Wall @WHUB_CFLAGS@ @LIBCAM_CFLAGS@
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 libwanhivepug_la_LDFLAGS = -version-info @WH_LIB_VERSION@
 libwanhivepug_la_SOURCES = $(WH_PUG_TOP_HDRS) $(WH_PHY_HDRS) $(WH_DRIV_HDRS) \
-	$(WH_DEVICE_HDRS) $(WH_PHY_SRCS) $(WH_DRIV_SRCS) $(WH_DEVICE_SRCS)
-libwanhivepug_la_LIBADD = @WHUB_LIBS@
+	$(WH_DEVICE_HDRS) $(WH_PHY_SRCS) $(WH_DRIV_SRCS) $(WH_DEVICE_SRCS) \
+	$(WH_VISION_HDRS) $(WH_VISION_SRCS)
+libwanhivepug_la_LIBADD = @WHUB_LIBS@ @LIBCAM_LIBS@
 
 # --- Library headers for installation ---
 wanhivepugtopdir=$(includedir)/wanhive
@@ -43,5 +48,7 @@ wanhivepugdrivdir=$(includedir)/wanhive/driver
 wanhivepugdriv_HEADERS=$(WH_DRIV_HDRS)
 wanhivepugdevicedir=$(includedir)/wanhive/device
 wanhivepugdevice_HEADERS=$(WH_DEVICE_HDRS)
+wanhivepugvisiondir=$(includedir)/wanhive/vision
+wanhivepugvision_HEADERS=$(WH_VISION_HDRS)
 
 pkgconfig_DATA = wanhivepug.pc

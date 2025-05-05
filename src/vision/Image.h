@@ -1,5 +1,5 @@
 /*
- * wanhive-pug.h
+ * Image.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -20,34 +20,41 @@
  *
  */
 
-#ifndef WH_PUG_H_
-#define WH_PUG_H_
+#ifndef WH_VISION_IMAGE_H_
+#define WH_VISION_IMAGE_H_
 
-/*
- * Physical computing interfaces
+namespace wanhive {
+/**
+ * Image data structure.
  */
-#include "physical/GPIO.h"
-#include "physical/SPI.h"
-#include "physical/UART.h"
+struct Image {
+	/*! Image data */
+	unsigned char *data;
+	/*! Image size in bytes */
+	unsigned long size;
+	/*! Image height (rows) */
+	unsigned int height;
+	/*! Image width (columns) */
+	unsigned int width;
+};
 
-/*
- * Device drivers
+/**
+ * Raw image data structure.
  */
-#include "driver/ADS111x.h"
-#include "driver/BME280.h"
-#include "driver/BME68x.h"
-#include "driver/BMI270.h"
-#include "driver/BMM350.h"
-#include "driver/MLX90640.h"
+struct RawImage {
+	/*! Raw image data */
+	Image raw;
+	/*! Raw image metadata */
+	struct {
+		/*! Buffer capacity in bytes */
+		unsigned long bytes;
+		/*! FOURCC code */
+		unsigned long fourcc;
+		/*! Image stride */
+		unsigned int stride;
+	} meta;
+};
 
-/*
- * Peripheral controllers
- */
-#include "device/Gimbal.h"
+}  // namespace wanhive
 
-/*
- * MIPI Camera driver
- */
-#include "vision/ViewFinder.h"
-
-#endif /* WH_PUG_H_ */
+#endif /* WH_VISION_IMAGE_H_ */

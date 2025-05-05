@@ -6,7 +6,7 @@ This program is a part of the Wanhive IoT Platform.
 
 ## Features
 
-Access and fully control GPIO pins on single board computers (SBCs) directly from the user space. 
+Control GPIO pins and peripherals on single-board computers (SBCs) from user space.
  
 - Digital I/O pins
 - I2C
@@ -15,9 +15,8 @@ Access and fully control GPIO pins on single board computers (SBCs) directly fro
 
 ## Dependencies
 
-- I2C userland development library
+- I2C userland development library (`libi2c`).
 - Wanhive Hub [development library](https://github.com/wanhive/hub)
-
 
 # Installation
 
@@ -29,6 +28,8 @@ tar -xvzf <archive-name>
 make
 make install
 ```
+
+**NOTE:** Adjust the `PKG_CONFIG_PATH` environment variable if you installed the dependencies in a *non-standard* prefix.
 
 # Resources
 

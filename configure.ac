@@ -27,7 +27,7 @@ LT_INIT
 AC_CHECK_LIB([i2c], [i2c_smbus_process_call], , [AC_MSG_ERROR([libi2c not found.])])
 AC_CHECK_LIB([m], [sqrt], , [AC_MSG_ERROR([libm not found.])])
 # nm <lib>.so | grep <method_name>
-AC_CHECK_LIB([wanhive], [_ZNK7wanhive9Exception4whatEv], , [AC_MSG_ERROR([libwanhive not found.])])
+AC_CHECK_LIB([wanhive], [wh_pkg_version], , [AC_MSG_ERROR([libwanhive not found.])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([sys/ioctl.h termios.h unistd.h], , [AC_MSG_ERROR([Header files missing.])])

@@ -24,9 +24,10 @@ AX_CXX_COMPILE_STDCXX(17, [noext], [mandatory])
 
 # Checks for libraries.
 LT_INIT
+AC_CHECK_LIB([gps], [gps_stream], , [AC_MSG_ERROR([libgps not found.])])
 AC_CHECK_LIB([i2c], [i2c_smbus_process_call], , [AC_MSG_ERROR([libi2c not found.])])
-AC_CHECK_LIB([m], [sqrt], , [AC_MSG_ERROR([libm not found.])])
 AC_CHECK_LIB([jpeg], [jpeg_std_error], , [AC_MSG_ERROR([libjpeg not found.])])
+AC_CHECK_LIB([m], [sqrt], , [AC_MSG_ERROR([libm not found.])])
 
 # Check for packages.
 PKG_CHECK_MODULES([WHUB], [wanhive >= 10.0.0], , [AC_MSG_ERROR([libwanhive not found.])])

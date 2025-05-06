@@ -24,6 +24,7 @@
 #define WH_PUG_ALL_HEADERS_H_
 
 #include "device/Gimbal.h"
+#include "device/GPS.h"
 #include "device/Image.h"
 #include "device/Jpeg.h"
 #include "device/PWM.h"

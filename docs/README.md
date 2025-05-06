@@ -13,12 +13,15 @@ Control GPIO pins and peripherals on single-board computers (SBCs) from user spa
 - SPI
 - Terminal and UART
 - MIPI cameras
+- GPS trackers
 
 ## Dependencies
 
 - I2C userland development library (`libi2c`).
 - JPEG image data format handling library (`libjpeg`).
 - Camera support library (`libcamera`).
+- GPS service daemon (`gpsd`).
+- Library for communicating with the GPS daemon (`libgps`).
 - Wanhive Hub [development library](https://github.com/wanhive/hub).
 
 # Installation

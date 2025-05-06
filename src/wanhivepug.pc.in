@@ -11,4 +11,4 @@ Version: @VERSION@
 Requires.private: wanhive >= 10.0.0 libcamera >= 0.2.0
 Cflags: -I${includedir} @WHUB_CFLAGS@ @LIBCAM_CFLAGS@
 Libs: -L${libdir} -lwanhivepug
-Libs.private: @WHUB_LIBS@ @LIBCAM_LIBS@ -ljpeg -lm -li2c
+Libs.private: -lm -ljpeg -li2c -lgps

@@ -17,10 +17,10 @@ WH_DRIV_SRCS = driver/ADS111x.cpp driver/BME280.cpp driver/BME68x.cpp \
 	driver/MLX90640.cpp driver/PCA9685.cpp
 
 ## src/device
-WH_DEVICE_HDRS = device/Gimbal.h device/Image.h device/Jpeg.h device/PWM.h \
-	device/ViewFinder.h
-WH_DEVICE_SRCS = device/Gimbal.cpp device/Jpeg.cpp device/PWM.cpp \
-	device/ViewFinder.cpp
+WH_DEVICE_HDRS = device/Gimbal.h device/GPS.h device/Image.h device/Jpeg.h \
+	device/PWM.h device/ViewFinder.h
+WH_DEVICE_SRCS = device/Gimbal.cpp device/GPS.cpp device/Jpeg.cpp \
+	device/PWM.cpp device/ViewFinder.cpp
 
 ## src/
 WH_PUG_TOP_HDRS = wanhive-pug.h

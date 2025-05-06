@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Bare minimum USB/MIPI camera driver (based on `libcamera`).
+- Basic USB/MIPI camera driver (based on `libcamera`).
+- GPS reader (relies on the GPSD daemon).
 
 ## [0.8.0] - 2024-04-29
 

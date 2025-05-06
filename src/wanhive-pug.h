@@ -44,6 +44,7 @@
  * Peripherals (sensors and controllers)
  */
 #include "device/Gimbal.h"
+#include "device/GPS.h"
 #include "device/ViewFinder.h"
 
 #endif /* WH_PUG_H_ */

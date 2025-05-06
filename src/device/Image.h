@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef WH_VISION_IMAGE_H_
-#define WH_VISION_IMAGE_H_
+#ifndef WH_DEVICE_IMAGE_H_
+#define WH_DEVICE_IMAGE_H_
 
 namespace wanhive {
 /**
@@ -57,4 +57,4 @@ struct RawImage {
 
 }  // namespace wanhive
 
-#endif /* WH_VISION_IMAGE_H_ */
+#endif /* WH_DEVICE_IMAGE_H_ */

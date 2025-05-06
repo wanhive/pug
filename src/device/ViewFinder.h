@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef WH_VISION_VIEWFINDER_H_
-#define WH_VISION_VIEWFINDER_H_
+#ifndef WH_DEVICE_VIEWFINDER_H_
+#define WH_DEVICE_VIEWFINDER_H_
 #include "Jpeg.h"
 #include <libcamera/libcamera.h>
 #include <wanhive/base/ds/CircularBuffer.h>
@@ -96,4 +96,4 @@ private:
 
 } /* namespace wanhive */
 
-#endif /* WH_VISION_VIEWFINDER_H_ */
+#endif /* WH_DEVICE_VIEWFINDER_H_ */

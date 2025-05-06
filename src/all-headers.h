@@ -24,7 +24,10 @@
 #define WH_PUG_ALL_HEADERS_H_
 
 #include "device/Gimbal.h"
+#include "device/Image.h"
+#include "device/Jpeg.h"
 #include "device/PWM.h"
+#include "device/ViewFinder.h"
 #include "driver/ADS111x.h"
 #include "driver/BME280.h"
 #include "driver/BME68x.h"
@@ -41,8 +44,5 @@
 #include "physical/Terminal.h"
 #include "physical/TerminalConfig.h"
 #include "physical/UART.h"
-#include "vision/Image.h"
-#include "vision/Jpeg.h"
-#include "vision/ViewFinder.h"
 
 #endif /* WH_PUG_ALL_HEADERS_H_ */

@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef WH_VISION_JPEG_H_
-#define WH_VISION_JPEG_H_
+#ifndef WH_DEVICE_JPEG_H_
+#define WH_DEVICE_JPEG_H_
 #include "Image.h"
 
 namespace wanhive {
@@ -69,4 +69,4 @@ private:
 
 } /* namespace wanhive */
 
-#endif /* WH_VISION_JPEG_H_ */
+#endif /* WH_DEVICE_JPEG_H_ */

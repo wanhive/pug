@@ -41,13 +41,9 @@
 #include "driver/MLX90640.h"
 
 /*
- * Peripheral controllers
+ * Peripherals (sensors and controllers)
  */
 #include "device/Gimbal.h"
-
-/*
- * MIPI Camera driver
- */
-#include "vision/ViewFinder.h"
+#include "device/ViewFinder.h"
 
 #endif /* WH_PUG_H_ */

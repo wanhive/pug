@@ -39,13 +39,16 @@ GPS::~GPS() {
 }
 
 bool GPS::read(GeoLocation &location) noexcept {
-	int nRead = 0;
 	if (!isConnected() && !connect()) {
 		return false;
-	} else if ((nRead = gps_read(&data, nullptr, 0)) < 0) {
+	}
+
+	gps_clear_fix(&data.fix);
+	auto nRead = gps_read(&data, nullptr, 0);
+	if (nRead < 0) {
 		reset();
 		return false;
-	} else if (nRead == 0 || !hasData()) {
+	} else if ((nRead == 0) || !hasData()) {
 		return false;
 	} else {
 		getData(location);
@@ -83,7 +86,7 @@ void GPS::getData(GeoLocation &location) const noexcept {
 }
 
 bool GPS::hasData() noexcept {
-	return isConnected() && (MODE_SET == (MODE_SET & data.set))
+	return isConnected() && (data.set)
 			&& (data.fix.mode == MODE_2D || data.fix.mode == MODE_3D);
 }
 
@@ -96,7 +99,8 @@ bool GPS::connect() noexcept {
 	if (gps_open(GPSD_SHARED_MEMORY, nullptr, &data) != 0) {
 		return false;
 	} else {
-		gps_stream(&data, (WATCH_ENABLE | WATCH_RAW ), nullptr);
+		gps_stream(&data, (WATCH_ENABLE | WATCH_RAW | WATCH_READONLY ),
+				nullptr);
 		connected = true;
 		return true;
 	}

@@ -99,8 +99,11 @@ bool GPS::connect() noexcept {
 	if (gps_open(GPSD_SHARED_MEMORY, nullptr, &data) != 0) {
 		return false;
 	} else {
-		gps_stream(&data, (WATCH_ENABLE | WATCH_RAW | WATCH_READONLY ),
-				nullptr);
+		auto flags = (WATCH_ENABLE | WATCH_RAW );
+#ifdef WATCH_READONLY
+		flags |= WATCH_READONLY;
+#endif
+		gps_stream(&data, flags, nullptr);
 		connected = true;
 		return true;
 	}

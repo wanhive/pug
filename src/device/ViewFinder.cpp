@@ -182,8 +182,8 @@ void ViewFinder::configure(unsigned int height, unsigned int width) {
 			{ libcamera::StreamRole::Viewfinder });
 	auto &scfg = config->at(0);
 	if (height && width) {
-		scfg.size.height = 1080;
-		scfg.size.width = 1920;
+		scfg.size.height = height;
+		scfg.size.width = width;
 	}
 	scfg.pixelFormat = libcamera::formats::YUV420;
 	scfg.bufferCount = 1;

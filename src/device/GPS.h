@@ -48,6 +48,14 @@ struct GeoLocation {
 };
 
 /**
+ * GPS service daemon connection options.
+ */
+enum GPSHost {
+	WH_GPS_SOCK,/**< Socket connection */
+	WH_GPS_SHM /**< Shared memory */
+};
+
+/**
  * GPS tracker.
  * @note Relies on the GPSD service.
  * @ref https://gpsd.gitlab.io/gpsd/
@@ -57,7 +65,7 @@ public:
 	/**
 	 * Constructor: initializes the object.
 	 */
-	GPS() noexcept;
+	GPS(GPSHost host = WH_GPS_SOCK) noexcept;
 	/**
 	 * Destructor: disconnects from the GPS daemon.
 	 */
@@ -79,7 +87,8 @@ private:
 	bool connect() noexcept;
 	void disconnect() noexcept;
 private:
-	bool connected { false };
+	GPSHost host;
+	bool connected;
 	gps_data_t data;
 };
 

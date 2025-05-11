@@ -28,9 +28,17 @@
 #error "Incompatible GPSD API version."
 #endif
 
+namespace {
+
+const char *hosts[][2] = { { "localhost", DEFAULT_GPSD_PORT }, {
+GPSD_SHARED_MEMORY, nullptr } };
+
+}  // namespace
+
 namespace wanhive {
 
-GPS::GPS() noexcept {
+GPS::GPS(GPSHost host) noexcept :
+		host { host }, connected { false } {
 
 }
 
@@ -48,7 +56,7 @@ bool GPS::read(GeoLocation &location) noexcept {
 	if (nRead < 0) {
 		reset();
 		return false;
-	} else if ((nRead == 0) || !hasData()) {
+	} else if (!nRead || !hasData()) {
 		return false;
 	} else {
 		getData(location);
@@ -96,14 +104,11 @@ bool GPS::isConnected() noexcept {
 
 bool GPS::connect() noexcept {
 	disconnect();
-	if (gps_open(GPSD_SHARED_MEMORY, nullptr, &data) != 0) {
+	auto addr = hosts[host];
+	if (gps_open(addr[0], addr[1], &data) != 0) {
 		return false;
 	} else {
-		auto flags = (WATCH_ENABLE | WATCH_RAW );
-#ifdef WATCH_READONLY
-		flags |= WATCH_READONLY;
-#endif
-		gps_stream(&data, flags, nullptr);
+		gps_stream(&data, WATCH_ENABLE, nullptr);
 		connected = true;
 		return true;
 	}

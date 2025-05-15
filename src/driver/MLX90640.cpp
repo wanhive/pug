@@ -523,42 +523,28 @@ bool MLX90640::readFrameData(uint16_t *frameData) const {
 }
 
 float MLX90640::getVdd(const uint16_t *frameData) const noexcept {
-	float vdd;
-	float resolutionCorrection;
-
 	uint16_t resolutionRAM = (frameData[832] & ~MLX90640_CTRL_RESOLUTION_MASK)
 			>> MLX90640_CTRL_RESOLUTION_SHIFT;
-	resolutionCorrection = pow(2, params.resolutionEE) / pow(2, resolutionRAM);
-	vdd = (resolutionCorrection * (int16_t) frameData[810] - params.vdd25)
-			/ params.kVdd + 3.3;
-
-	return vdd;
+	auto resolutionCorrection = pow(2, params.resolutionEE)
+			/ pow(2, resolutionRAM);
+	return ((resolutionCorrection * (int16_t) frameData[810] - params.vdd25)
+			/ params.kVdd + 3.3);
 }
 
 float MLX90640::getAmbientTemperature(const uint16_t *frameData,
 		float vdd) const noexcept {
-	int16_t ptat;
-	float ptatArt;
-	float ta;
-
-	ptat = (int16_t) frameData[800];
-
-	ptatArt = (ptat / (ptat * params.alphaPTAT + (int16_t) frameData[768]))
+	auto ptat = frameData[800];
+	auto ptatArt = (ptat / (ptat * params.alphaPTAT + (int16_t) frameData[768]))
 			* pow(2, 18);
 
-	ta = (ptatArt / (1 + params.KvPTAT * (vdd - 3.3)) - params.vPTAT25);
+	auto ta = (ptatArt / (1 + params.KvPTAT * (vdd - 3.3)) - params.vPTAT25);
 	ta = ta / params.KtPTAT + 25;
-
 	return ta;
 }
 
 void MLX90640::extractVDDParameters(const uint16_t *eeData) noexcept {
-	int8_t kVdd;
-	int16_t vdd25;
-
-	kVdd = MLX90640_MS_BYTE(eeData[51]);
-
-	vdd25 = MLX90640_LS_BYTE(eeData[51]);
+	int8_t kVdd = MLX90640_MS_BYTE(eeData[51]);
+	int16_t vdd25 = MLX90640_LS_BYTE(eeData[51]);
 	vdd25 = ((vdd25 - 256) << 5) - 8192;
 
 	params.kVdd = 32 * kVdd;
@@ -566,26 +552,21 @@ void MLX90640::extractVDDParameters(const uint16_t *eeData) noexcept {
 }
 
 void MLX90640::extractPTATParameters(const uint16_t *eeData) noexcept {
-	float KvPTAT;
-	float KtPTAT;
-	int16_t vPTAT25;
-	float alphaPTAT;
-
-	KvPTAT = (eeData[50] & MLX90640_MSBITS_6_MASK) >> 10;
+	float KvPTAT = (eeData[50] & MLX90640_MSBITS_6_MASK) >> 10;
 	if (KvPTAT > 31) {
 		KvPTAT = KvPTAT - 64;
 	}
 	KvPTAT = KvPTAT / 4096;
 
-	KtPTAT = eeData[50] & MLX90640_LSBITS_10_MASK;
+	float KtPTAT = eeData[50] & MLX90640_LSBITS_10_MASK;
 	if (KtPTAT > 511) {
 		KtPTAT = KtPTAT - 1024;
 	}
 	KtPTAT = KtPTAT / 8;
 
-	vPTAT25 = eeData[49];
+	int16_t vPTAT25 = eeData[49];
 
-	alphaPTAT = (eeData[16] & MLX90640_NIBBLE4_MASK) / pow(2, 14) + 8.0f;
+	float alphaPTAT = (eeData[16] & MLX90640_NIBBLE4_MASK) / pow(2, 14) + 8.0f;
 
 	params.KvPTAT = KvPTAT;
 	params.KtPTAT = KtPTAT;
@@ -602,10 +583,7 @@ void MLX90640::extractTgcParameters(const uint16_t *eeData) noexcept {
 }
 
 void MLX90640::extractResolutionParameters(const uint16_t *eeData) noexcept {
-	uint8_t resolutionEE;
-	resolutionEE = (eeData[56] & 0x3000) >> 12;
-
-	params.resolutionEE = resolutionEE;
+	params.resolutionEE = (eeData[56] & 0x3000) >> 12;
 }
 
 void MLX90640::extractKsTaParameters(const uint16_t *eeData) noexcept {
@@ -613,10 +591,7 @@ void MLX90640::extractKsTaParameters(const uint16_t *eeData) noexcept {
 }
 
 void MLX90640::extractKsToParameters(const uint16_t *eeData) noexcept {
-	int32_t KsToScale;
-	int8_t step;
-
-	step = ((eeData[63] & 0x3000) >> 12) * 10;
+	int8_t step = ((eeData[63] & 0x3000) >> 12) * 10;
 
 	params.ct[0] = -40;
 	params.ct[1] = 0;
@@ -627,7 +602,7 @@ void MLX90640::extractKsToParameters(const uint16_t *eeData) noexcept {
 	params.ct[3] = params.ct[2] + params.ct[3] * step;
 	params.ct[4] = 400;
 
-	KsToScale = MLX90640_NIBBLE1(eeData[63]) + 8;
+	int32_t KsToScale = MLX90640_NIBBLE1(eeData[63]) + 8;
 	KsToScale = 1UL << KsToScale;
 
 	params.ksTo[0] = (int8_t) MLX90640_LS_BYTE(eeData[61]) / (float) KsToScale;
@@ -788,13 +763,9 @@ void MLX90640::extractKtaPixelParameters(const uint16_t *eeData) noexcept {
 	float temp;
 
 	KtaRC[0] = (int8_t) MLX90640_MS_BYTE(eeData[54]);
-	;
 	KtaRC[2] = (int8_t) MLX90640_LS_BYTE(eeData[54]);
-	;
 	KtaRC[1] = (int8_t) MLX90640_MS_BYTE(eeData[55]);
-	;
 	KtaRC[3] = (int8_t) MLX90640_LS_BYTE(eeData[55]);
-	;
 
 	ktaScale1 = MLX90640_NIBBLE2(eeData[56]) + 8;
 	ktaScale2 = MLX90640_NIBBLE1(eeData[56]);

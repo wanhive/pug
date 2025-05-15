@@ -27,7 +27,8 @@
 namespace wanhive {
 /**
  * Raw image to JPEG converter.
- * @note Supports YUV420, YUYV, and MJPG formats only.
+ * @note Supported input formats: uncompressed RGB data; YUV420; YUYV; MJPG.
+ * @note Caller should not manage the output buffer.
  */
 class Jpeg {
 public:
@@ -54,6 +55,7 @@ public:
 	 */
 	void convert(const RawImage &input, Image &output);
 private:
+	void fromRGB(const RawImage &input, Image &output);
 	void fromYUYV(const RawImage &input, Image &output);
 	void fromYUV420(const RawImage &input, Image &output);
 	void fromMJPG(const RawImage &input, Image &output);

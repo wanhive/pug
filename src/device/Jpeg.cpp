@@ -44,7 +44,10 @@ extern "C" {
 namespace {
 
 enum WHFOURCC : unsigned long {
-	WH_YUV420 = 842093913, WH_YUYV = 1448695129, WH_MJPG = 1196444237
+	WH_BI_RGB = 0,
+	WH_YUV420 = 842093913,
+	WH_YUYV = 1448695129,
+	WH_MJPG = 1196444237
 };
 
 }  // namespace
@@ -73,14 +76,17 @@ void Jpeg::setQuality(unsigned int quality) noexcept {
 }
 
 void Jpeg::convert(const RawImage &input, Image &output) {
-	if (!input.raw.data || !input.meta.bytes || !input.raw.size
-			|| !input.raw.height || !input.raw.width
+	if (!input.raw.data || !input.raw.size || !input.raw.height
+			|| !input.raw.width || !input.meta.bytes
 			|| (input.meta.bytes < input.raw.size)) {
 		throw Exception(EX_ARGUMENT);
 	}
 
 	memset(&output, 0, sizeof(output));
 	switch (input.meta.fourcc) {
+	case WH_BI_RGB: //RGB data
+		fromRGB(input, output);
+		break;
 	case WH_YUV420: //YUV420
 		fromYUV420(input, output);
 		break;
@@ -93,6 +99,42 @@ void Jpeg::convert(const RawImage &input, Image &output) {
 	default:
 		throw Exception(EX_ARGUMENT);
 	}
+}
+
+void Jpeg::fromRGB(const RawImage &input, Image &output) {
+	provision(input.meta.bytes);
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_compress(&cinfo);
+
+	cinfo.image_width = input.raw.width;
+	cinfo.image_height = input.raw.height;
+	cinfo.input_components = 3; // RGB
+	cinfo.in_color_space = JCS_RGB;
+	jpeg_set_defaults(&cinfo);
+	jpeg_set_quality(&cinfo, control.quality, TRUE);
+
+	control.used = control.capacity;
+	jpeg_mem_dest(&cinfo, &control.data, &control.used);
+	jpeg_start_compress(&cinfo, TRUE);
+
+	JSAMPROW row_pointer[1];
+	auto row_stride = input.meta.stride;
+
+	while (cinfo.next_scanline < cinfo.image_height) {
+		row_pointer[0] = &input.raw.data[cinfo.next_scanline * row_stride];
+		jpeg_write_scanlines(&cinfo, row_pointer, 1);
+	}
+
+	jpeg_finish_compress(&cinfo);
+	jpeg_destroy_compress(&cinfo);
+
+	output.data = control.data;
+	output.size = control.used;
+	output.height = input.raw.height;
+	output.width = input.raw.width;
 }
 
 void Jpeg::fromYUYV(const RawImage &input, Image &output) {

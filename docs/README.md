@@ -30,6 +30,7 @@ Download the source archive.
 
 ```
 tar -xvzf <archive-name>
+autoreconf -ifv
 ./configure
 make
 make install

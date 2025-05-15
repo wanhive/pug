@@ -70,11 +70,12 @@ enum MLX90640Pattern : unsigned char {
  * MLX90640 pixel defects status
  */
 enum MLX90640Defect : unsigned char {
-	MLX90640_PIX_OK = (0x00), /**< Within threshold */
-	MLX90640_PIX_BROKEN = (0x01),/**< No output */
-	MLX90640_PIX_OUTLIER = (0x02), /**< Out of specification */
-	MLX90640_PIX_BAD = (0x03), /**< Defective pixels */
-	MLX90640_PIX_ADJACENT = (0x04) /**< Adjacent defects */
+	MLX90640_PIX_GOOD = (0x00), /**< No defects */
+	MLX90640_PIX_OK = (0x01), /**< Within threshold */
+	MLX90640_PIX_BROKEN = (0x02),/**< No output */
+	MLX90640_PIX_OUTLIER = (0x04), /**< Out of specification */
+	MLX90640_PIX_BAD = (0x06), /**< Defective pixels */
+	MLX90640_PIX_ADJACENT = (0x08) /**< Adjacent defects */
 };
 
 struct MLX90640Config {

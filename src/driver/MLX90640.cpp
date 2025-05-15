@@ -991,7 +991,9 @@ MLX90640Defect MLX90640::extractDeviatingPixels(const uint16_t *eeData) noexcept
 
 	}
 
-	if (brokenPixCnt > 4) {
+	if (!brokenPixCnt && !outlierPixCnt) {
+		warn = MLX90640_PIX_GOOD;
+	} else if (brokenPixCnt > 4) {
 		warn = MLX90640_PIX_BROKEN;
 	} else if (outlierPixCnt > 4) {
 		warn = MLX90640_PIX_OUTLIER;

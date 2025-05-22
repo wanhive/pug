@@ -63,13 +63,7 @@ public:
 	 * @param pin the pin number (0-15)
 	 */
 	void low(unsigned int pin) const;
-	/**
-	 * Sets PWM output (turn-on time and duty cycle).
-	 * @param pin the pin number (0-15)
-	 * @param delay turn-on time (%)
-	 * @param duty duty cycle (%)
-	 */
-	void pulse(unsigned int pin, unsigned int delay, unsigned int duty) const;
+	using PCA9685::pulse;
 private:
 	using PCA9685::getFrequency;
 	using PCA9685::setFrequency;

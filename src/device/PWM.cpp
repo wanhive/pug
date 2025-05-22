@@ -21,7 +21,6 @@
  */
 
 #include "PWM.h"
-#include <wanhive/base/common/Exception.h>
 
 #ifndef WH_PWM_FREQUENCY
 #define WH_PWM_FREQUENCY 50U
@@ -61,21 +60,6 @@ void PWM::high(unsigned int pin) const {
 
 void PWM::low(unsigned int pin) const {
 	digitalWrite(pin, false);
-}
-
-void PWM::pulse(unsigned int pin, unsigned int delay, unsigned int duty) const {
-	if (delay > 100 || duty > 100) {
-		throw Exception(EX_ARGUMENT);
-	}
-
-	unsigned short on = ((PWM_MAX * (delay / 100.0f)) + 0.5f);
-	unsigned short high = ((PWM_MAX * (duty / 100.0f)) + 0.5f);
-	unsigned short total = (on + high);
-	unsigned short off = (total <= PWM_MAX) ? total : (total - PWM_MAX);
-
-	on = (on > 0) ? (on - 1) : on;
-	off = (off > 0) ? (off - 1) : off;
-	PCA9685::write(pin, on, off);
 }
 
 } /* namespace wanhive */

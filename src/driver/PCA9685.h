@@ -28,8 +28,7 @@ namespace wanhive {
 /**
  * User space PCA9685 driver.
  * @note PCA9685 is a 16-channel, 12-bit resolution PWM controller.
- * @note Supports internal oscillator only.
- * @ref http://www.nxp.com/documents/data_sheet/PCA9685.pdf
+ * @note Supports the internal oscillator only.
  */
 class PCA9685: protected SMBus {
 public:
@@ -50,6 +49,45 @@ public:
 	 */
 	~PCA9685() noexcept;
 	/**
+	 * Resets the device (uses the general call reset).
+	 */
+	void reset() const;
+	/**
+	 * Restarts the device.
+	 */
+	void restart() const;
+	/**
+	 * Puts the device into sleep mode.
+	 */
+	void sleep() const;
+	/**
+	 * Wakes up the device from sleep mode.
+	 */
+	void wakeUp() const;
+	/**
+	 * Reads the output mode.
+	 * @param invert true if inverted output, false otherwise
+	 * @param openDrain true if open drain, false if totem-pole
+	 */
+	void getOutputMode(bool &invert, bool &openDrain) const;
+	/**
+	 * Sets up the output mode.
+	 * @param invert true to invert the output logic state, false otherwise
+	 * @param openDrain true for open drain, false for totem-pole
+	 */
+	void setOutputMode(bool invert, bool openDrain) const;
+	/**
+	 * Reads the output modulation frequency (with internal oscillator).
+	 * @return current output frequency in Hz
+	 */
+	unsigned int getFrequency() const;
+	/**
+	 * Sets the output modulation frequency (with internal oscillator).
+	 * @param frequency desired output frequency in Hz
+	 * @return output frequency been set
+	 */
+	unsigned int setFrequency(unsigned int frequency) const;
+	/**
 	 * Simple PWM control which sets the on-tick to 0 and the off-tick to a
 	 * given value.
 	 * @param pin the pin number (0-15), ALL_PIN to select all.
@@ -65,29 +103,6 @@ public:
 	 * true, full-on will be enabled.
 	 */
 	void digitalWrite(unsigned int pin, bool value) const;
-	/**
-	 * Reads the output modulation frequency (with internal oscillator).
-	 * @return current output frequency in Hz
-	 */
-	unsigned int getFrequency() const;
-	/**
-	 * Sets the output modulation frequency (with internal oscillator).
-	 * @param frequency desired output frequency in Hz
-	 * @return output frequency been set
-	 */
-	unsigned int setFrequency(unsigned int frequency) const;
-	/**
-	 * Restarts the device.
-	 */
-	void restart() const;
-	/**
-	 * Puts the device into sleep mode.
-	 */
-	void sleep() const;
-	/**
-	 * Wakes up the device from sleep mode.
-	 */
-	void wakeUp() const;
 	/**
 	 * Writes the on and off ticks to a pin (deactivates full-on and full-off).
 	 * @param pin the pin number (0-15), ALL_PIN to select all.
@@ -116,11 +131,12 @@ public:
 	 */
 	void fullOff(unsigned int pin, bool flag) const;
 	/**
-	 * Sets up the output mode.
-	 * @param invert true to invert the output logic state, false otherwise
-	 * @param openDrain true for open drain, false for totem-pole
+	 * Controls the PWM output (turn-on time and duty cycle).
+	 * @param pin the pin number (0-15)
+	 * @param delay turn-on time (%)
+	 * @param duty duty cycle (%)
 	 */
-	void setOutputMode(bool invert, bool openDrain) const;
+	void pulse(unsigned int pin, unsigned int delay, unsigned int duty) const;
 private:
 	void setup() const;
 public:

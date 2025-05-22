@@ -43,7 +43,6 @@ struct ADS111xConfig {
 /**
  * User space ADS111x (ADS1113, ADS1114, ADS1115) driver.
  * @note ADS111x are I2C compatible 16-bit analog-to-digital converters (ADCs).
- * @ref https://www.ti.com/lit/gpn/ads1115
  */
 class ADS111x: protected SMBus {
 public:
@@ -64,6 +63,10 @@ public:
 	 */
 	~ADS111x();
 	//-----------------------------------------------------------------
+	/**
+	 * Resets the device (uses the general call reset).
+	 */
+	void reset() const;
 	/**
 	 * Reads from the conversion register.
 	 * @return 16-bit value

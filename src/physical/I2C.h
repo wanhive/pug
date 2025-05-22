@@ -98,7 +98,7 @@ public:
 	/**
 	 * Sends out a general call reset to all devices.
 	 */
-	void resetAll();
+	void resetAll() const;
 private:
 	void open(const char *path);
 	void open(const char *path, const I2CDevice &device);

@@ -33,8 +33,9 @@ constexpr unsigned char PRESCALE_REG = 0xFE;
 constexpr unsigned char RESTART_MASK = 0x80;
 constexpr unsigned char SLEEP_MASK = 0x10;
 constexpr unsigned char AI_MASK = 0x20;
-constexpr unsigned char INVRT_MASK = 0x10;
 constexpr unsigned char FULL_MASK = 0x10;
+constexpr unsigned char INVRT_MASK = 0x10;
+constexpr unsigned char TOTEMPOLE_MASK = 0x04;
 
 /**
  * Locates the correct LEDX_ON_L register for the pin number starting at 0.
@@ -68,22 +69,59 @@ PCA9685::~PCA9685() noexcept {
 
 }
 
-void PCA9685::pwmWrite(unsigned int pin, unsigned int value) const {
-	if (value >= PWM_MAX) {
-		fullOn(pin, true);
-	} else if (value > 0) {
-		write(pin, 0, value);
-	} else {
-		fullOff(pin, true);
-	}
+void PCA9685::reset() const {
+	I2C::resetAll();
+	setup();
 }
 
-void PCA9685::digitalWrite(unsigned int pin, bool value) const {
-	if (value) {
-		fullOn(pin, true);
-	} else {
-		fullOff(pin, true);
+void PCA9685::restart() const {
+	auto state = SMBus::readByte(MODE1_REG);
+	if (state & RESTART_MASK) {
+		state &= ~RESTART_MASK;
+		state &= ~SLEEP_MASK;
+		SMBus::write(MODE1_REG, state);
+		Timer::sleep(1);
 	}
+
+	state |= RESTART_MASK;
+	SMBus::write(MODE1_REG, state);
+}
+
+void PCA9685::sleep() const {
+	auto state = SMBus::readByte(MODE1_REG);
+	state |= SLEEP_MASK;
+	SMBus::write(MODE1_REG, state);
+}
+
+void PCA9685::wakeUp() const {
+	auto state = SMBus::readByte(MODE1_REG);
+	state &= ~SLEEP_MASK;
+	SMBus::write(MODE1_REG, state);
+	Timer::sleep(1);
+}
+
+void PCA9685::getOutputMode(bool &invert, bool &openDrain) const {
+	auto state = SMBus::readByte(MODE2_REG);
+	invert = (state & INVRT_MASK);
+	openDrain = !(state & TOTEMPOLE_MASK);
+}
+
+void PCA9685::setOutputMode(bool invert, bool openDrain) const {
+	auto state = SMBus::readByte(MODE2_REG);
+
+	if (invert) {
+		state |= INVRT_MASK;
+	} else {
+		state &= ~INVRT_MASK;
+	}
+
+	if (openDrain) {
+		state &= ~TOTEMPOLE_MASK;
+	} else {
+		state |= TOTEMPOLE_MASK;
+	}
+
+	SMBus::write(MODE2_REG, state);
 }
 
 unsigned int PCA9685::getFrequency() const {
@@ -114,8 +152,7 @@ unsigned int PCA9685::setFrequency(unsigned int frequency) const {
 		prescale = PRESCALE_MIN;
 	}
 
-	unsigned char state;
-	SMBus::read(MODE1_REG, state);
+	auto state = SMBus::readByte(MODE1_REG);
 	//Clear the restart bit
 	state &= ~RESTART_MASK;
 	//Go to sleep (set the sleep bit)
@@ -135,33 +172,22 @@ unsigned int PCA9685::setFrequency(unsigned int frequency) const {
 	return frequency;
 }
 
-void PCA9685::restart() const {
-	unsigned char state;
-	SMBus::read(MODE1_REG, state);
-	if (state & RESTART_MASK) {
-		state &= ~RESTART_MASK;
-		state &= ~SLEEP_MASK;
-		SMBus::write(MODE1_REG, state);
-		Timer::sleep(1);
+void PCA9685::pwmWrite(unsigned int pin, unsigned int value) const {
+	if (value >= PWM_MAX) {
+		fullOn(pin, true);
+	} else if (value > 0) {
+		write(pin, 0, value);
+	} else {
+		fullOff(pin, true);
 	}
-
-	state |= RESTART_MASK;
-	SMBus::write(MODE1_REG, state);
 }
 
-void PCA9685::sleep() const {
-	unsigned char state;
-	SMBus::read(MODE1_REG, state);
-	state |= SLEEP_MASK;
-	SMBus::write(MODE1_REG, state);
-}
-
-void PCA9685::wakeUp() const {
-	unsigned char state;
-	SMBus::read(MODE1_REG, state);
-	state &= ~SLEEP_MASK;
-	SMBus::write(MODE1_REG, state);
-	Timer::sleep(1);
+void PCA9685::digitalWrite(unsigned int pin, bool value) const {
+	if (value) {
+		fullOn(pin, true);
+	} else {
+		fullOff(pin, true);
+	}
 }
 
 void PCA9685::write(unsigned int pin, unsigned short on,
@@ -185,8 +211,7 @@ void PCA9685::read(unsigned int pin, unsigned short &on,
 
 void PCA9685::fullOn(unsigned int pin, bool flag) const {
 	auto reg = baseRegister(pin) + 1; //LEDX_ON_H
-	unsigned char state;
-	SMBus::read(reg, state);
+	auto state = SMBus::readByte(reg);
 	state = Twiddler::mask(state, FULL_MASK, flag);
 	SMBus::write(reg, state);
 
@@ -198,35 +223,33 @@ void PCA9685::fullOn(unsigned int pin, bool flag) const {
 
 void PCA9685::fullOff(unsigned int pin, bool flag) const {
 	auto reg = baseRegister(pin) + 3; //LEDX_OFF_H
-	unsigned char state;
-	SMBus::read(reg, state);
+	auto state = SMBus::readByte(reg);
 	state = Twiddler::mask(state, FULL_MASK, flag);
 	SMBus::write(reg, state);
 }
 
-void PCA9685::setOutputMode(bool invert, bool openDrain) const {
-	constexpr unsigned char TOTEMPOLE_MASK = 0x04;
-	unsigned char state;
-	SMBus::read(MODE2_REG, state);
-
-	if (invert) {
-		state |= INVRT_MASK;
-	} else {
-		state &= ~INVRT_MASK;
+void PCA9685::pulse(unsigned int pin, unsigned int delay,
+		unsigned int duty) const {
+	if (delay > 100) {
+		delay = 100;
 	}
 
-	if (openDrain) {
-		state &= ~TOTEMPOLE_MASK;
-	} else {
-		state |= TOTEMPOLE_MASK;
+	if (duty > 100) {
+		duty = 100;
 	}
 
-	SMBus::write(MODE2_REG, state);
+	unsigned short on = ((PWM_MAX * (delay / 100.0f)) + 0.5f);
+	unsigned short high = ((PWM_MAX * (duty / 100.0f)) + 0.5f);
+	unsigned short total = (on + high);
+	unsigned short off = (total <= PWM_MAX) ? total : (total - PWM_MAX);
+
+	on = (on > 0) ? (on - 1) : on;
+	off = (off > 0) ? (off - 1) : off;
+	write(pin, on, off);
 }
 
 void PCA9685::setup() const {
-	unsigned char state;
-	SMBus::read(MODE1_REG, state);
+	auto state = SMBus::readByte(MODE1_REG);
 	//Enable register auto-increment
 	state = (state & ~RESTART_MASK) | AI_MASK;
 	SMBus::write(MODE1_REG, state);

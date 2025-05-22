@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Uncompressed RGB data to JPEG conversion.
 - BMI270 sensor drive strength handling.
+- Soft reset function in the **ADS111x** and **PCA9685** drivers.
+- **PCA9685::pulse** member function.
 
 ### Fixed
 
 - Allow the JPEG image quality to go down to zero (0).
+- **I2C::resetAll** member function should have const modifier.
 
 ## [0.10.0] - 2025-05-15
 

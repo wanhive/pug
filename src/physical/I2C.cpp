@@ -99,7 +99,7 @@ void I2C::select(const I2CDevice &device) const {
 	}
 }
 
-void I2C::resetAll() {
+void I2C::resetAll() const {
 	unsigned char command = 0x06;
 	i2c_rdwr_ioctl_data data;
 	i2c_msg msg;

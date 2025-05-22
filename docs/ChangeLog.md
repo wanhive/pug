@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Uncompressed RGB data to JPEG conversion.
+- BMI270 sensor drive strength handling.
+
+### Fixed
+
+- Allow the JPEG image quality to go down to zero (0).
 
 ## [0.10.0] - 2025-05-15
 

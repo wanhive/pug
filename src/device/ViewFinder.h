@@ -65,7 +65,7 @@ public:
 	/**
 	 * Captures JPEG image from a camera.
 	 * @param image JPEG image output
-	 * @param quality desired image quality [10%-100%]
+	 * @param quality desired image quality [0-100]
 	 * @return true on success, false on failure (new data not available)
 	 */
 	bool capture(Image &image, unsigned int quality);

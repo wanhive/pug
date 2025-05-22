@@ -66,12 +66,10 @@ unsigned int Jpeg::getQuality() const noexcept {
 }
 
 void Jpeg::setQuality(unsigned int quality) noexcept {
-	if (quality < 10) {
-		control.quality = 10;
-	} else if (quality > 100) {
-		control.quality = 100;
-	} else {
+	if (quality <= 100) {
 		control.quality = quality;
+	} else {
+		control.quality = 100;
 	}
 }
 

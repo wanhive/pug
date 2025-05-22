@@ -34,9 +34,9 @@ class Jpeg {
 public:
 	/**
 	 * Constructor: sets up the jpeg converter.
-	 * @param quality desired image quality [10%-100%]
+	 * @param quality desired image quality [0-100]
 	 */
-	Jpeg(unsigned int quality = 90) noexcept;
+	Jpeg(unsigned int quality = QUALITY) noexcept;
 	~Jpeg();
 	/**
 	 * Returns the output image quality (%).
@@ -44,7 +44,7 @@ public:
 	 */
 	unsigned int getQuality() const noexcept;
 	/**
-	 * Sets the output image quality [10%-100%].
+	 * Sets the output image quality [0-100].
 	 * @param quality desired image quality
 	 */
 	void setQuality(unsigned int quality) noexcept;
@@ -60,6 +60,9 @@ private:
 	void fromYUV420(const RawImage &input, Image &output);
 	void fromMJPG(const RawImage &input, Image &output);
 	void provision(unsigned long capacity);
+public:
+	/*! Default image quality */
+	static constexpr unsigned int QUALITY = 90;
 private:
 	struct {
 		unsigned char *data { nullptr };

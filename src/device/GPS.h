@@ -34,7 +34,7 @@ struct GeoLocation {
 	/*! Unix timestamp */
 	double timestamp;
 	/*! Latitude in degrees */
-	double latitude; //Latitude
+	double latitude;
 	/*! Longitude in degrees */
 	double longitude;
 	/*! Altitude over mean sea level (meter) */

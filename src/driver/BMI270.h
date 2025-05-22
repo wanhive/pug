@@ -410,10 +410,20 @@ public:
 	 */
 	unsigned short getInterruptStatus() const;
 	/**
-	 * Reads the saturation status of the sensor.
+	 * Reads the saturation status.
 	 * @return status code
 	 */
 	unsigned char getSaturationStatus() const;
+	/**
+	 * Reads the drive strength.
+	 * @return current drive strength
+	 */
+	unsigned char getDriveStrength() const;
+	/**
+	 * Sets the drive strength.
+	 * @param value desired drive strength
+	 */
+	void setDriveStrength(unsigned char value);
 	/**
 	 * Reads raw gyroscope data.
 	 * @param data raw gyroscope data

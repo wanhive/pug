@@ -54,6 +54,8 @@ constexpr unsigned char REG_INT_MAP_DATA = (0x58);
 constexpr unsigned char REG_TEMPERATURE_0 = (0x22);
 //Saturation
 constexpr unsigned char REG_SATURATION = (0x4A);
+//Drive strength
+constexpr unsigned char REG_DRV = (0x6C);
 // Masks
 constexpr unsigned char LSB_MASK_8BIT = (0x0F); // 00001111
 constexpr unsigned char MSB_MASK_8BIT = (0xF0); // 11110000
@@ -949,6 +951,14 @@ unsigned short BMI270::getInterruptStatus() const {
 
 unsigned char BMI270::getSaturationStatus() const {
 	return SMBus::readByte(REG_SATURATION);
+}
+
+unsigned char BMI270::getDriveStrength() const {
+	return SMBus::readByte(REG_DRV);
+}
+
+void BMI270::setDriveStrength(unsigned char value) {
+	SMBus::write(REG_DRV, value);
 }
 
 void BMI270::getRawGyroscopeData(BMI270RawData &data) const {

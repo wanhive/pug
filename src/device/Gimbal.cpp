@@ -39,21 +39,21 @@ Gimbal::~Gimbal() {
 
 void Gimbal::pan(unsigned int value) {
 	if (value != axis.pan && value <= PAN_MAX) {
-		servo(PAN_CTRL, ((value / 90.0f) + 0.5f));
+		servo(PAN_CTRL, ((value / 90.0) + 0.5) * 1000);
 		axis.pan = value;
 	}
 }
 
 void Gimbal::roll(unsigned int value) {
 	if (value != axis.roll && value <= ROLL_MAX) {
-		servo(ROLL_CTRL, ((value / 90.0f) + 0.5f));
+		servo(ROLL_CTRL, ((value / 90.0) + 0.5) * 1000);
 		axis.roll = value;
 	}
 }
 
 void Gimbal::tilt(unsigned int value) {
 	if (value != axis.tilt && value <= TILT_MAX) {
-		servo(TILT_CTRL, ((value / 90.0f) + 0.5f));
+		servo(TILT_CTRL, ((value / 90.0) + 0.5) * 1000);
 		axis.tilt = value;
 	}
 }

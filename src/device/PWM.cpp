@@ -26,13 +26,13 @@
 #define WH_PWM_FREQUENCY 50U
 #endif
 #ifndef WH_SERVO_NEUTRAL_PULSE
-#define WH_SERVO_NEUTRAL_PULSE 1.5f
+#define WH_SERVO_NEUTRAL_PULSE 1500U
 #endif
 
 namespace wanhive {
 
 const unsigned int PWM::FREQUENCY = WH_PWM_FREQUENCY;
-const float PWM::SERVO_CENTER = WH_SERVO_NEUTRAL_PULSE;
+const unsigned int PWM::SERVO_CENTER = WH_SERVO_NEUTRAL_PULSE;
 
 PWM::PWM(unsigned int bus, unsigned int address) :
 		PCA9685(bus, address) {
@@ -48,9 +48,8 @@ PWM::~PWM() {
 
 }
 
-void PWM::servo(unsigned int pin, float pulse) const {
-	int value = ((PWM_MAX * (pulse * FREQUENCY / 1000.0f)) + 0.5f);
-	value = (value >= 0) ? value : 0;
+void PWM::servo(unsigned int pin, unsigned int pulse) const {
+	unsigned int value = ((PWM_MAX * (pulse * FREQUENCY / 1000000.0)) + 0.5);
 	pwmWrite(pin, value);
 }
 

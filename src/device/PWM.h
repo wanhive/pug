@@ -50,9 +50,9 @@ public:
 	/**
 	 * Applies pulse of a given width to the servo motor's control wire.
 	 * @param pin the pin number (0-15)
-	 * @param pulse pulse width in milliseconds
+	 * @param pulse pulse width in microseconds
 	 */
-	void servo(unsigned int pin, float pulse = SERVO_CENTER) const;
+	void servo(unsigned int pin, unsigned int pulse = SERVO_CENTER) const;
 	/**
 	 * Sets a pin to logic high.
 	 * @param pin the pin number (0-15)
@@ -68,14 +68,10 @@ private:
 	using PCA9685::getFrequency;
 	using PCA9685::setFrequency;
 public:
-	/**
-	 * Output modulation frequency (Hz)
-	 */
+	/*! Output modulation frequency (Hz) */
 	static const unsigned int FREQUENCY;
-	/**
-	 * Pulse width in milliseconds to center the servo motor
-	 */
-	static const float SERVO_CENTER;
+	/*! Pulse width in microseconds to center the servo motor */
+	static const unsigned int SERVO_CENTER;
 };
 
 } /* namespace wanhive */

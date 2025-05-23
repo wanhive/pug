@@ -10,9 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Uncompressed RGB data to JPEG conversion.
-- BMI270 sensor drive strength handling.
-- Soft reset function in the **ADS111x** and **PCA9685** drivers.
-- **PCA9685::pulse** member function.
+- APIs for BMI270 sensor's drive strength handling.
+- **PCA9685::pulse** member function for PWM control.
+
+### Changed
+
+- Pulse width parameter's precision changed from milliseconds to microseconds in **PWM::servo**.
 
 ### Fixed
 

@@ -69,11 +69,6 @@ PCA9685::~PCA9685() noexcept {
 
 }
 
-void PCA9685::reset() const {
-	I2C::resetAll();
-	setup();
-}
-
 void PCA9685::restart() const {
 	auto state = SMBus::readByte(MODE1_REG);
 	if (state & RESTART_MASK) {

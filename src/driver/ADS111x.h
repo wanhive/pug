@@ -43,17 +43,18 @@ struct ADS111xConfig {
 /**
  * User space ADS111x (ADS1113, ADS1114, ADS1115) driver.
  * @note ADS111x are I2C compatible 16-bit analog-to-digital converters (ADCs).
+ * @note Responds to the I2C general-call reset command.
  */
 class ADS111x: protected SMBus {
 public:
 	/**
-	 * Constructor: initializes the driver.
+	 * Constructor: initializes the sensor.
 	 * @param bus i2c adapter's identifier
 	 * @param address device identifier (typically 0x48)
 	 */
 	ADS111x(unsigned int bus, unsigned int address = I2C_ADDR);
 	/**
-	 * Constructor: initializes the driver.
+	 * Constructor: initializes the sensor.
 	 * @param path i2c adapter's pathname
 	 * @param address device identifier (typically 0x48)
 	 */
@@ -63,10 +64,6 @@ public:
 	 */
 	~ADS111x();
 	//-----------------------------------------------------------------
-	/**
-	 * Resets the device (uses the general call reset).
-	 */
-	void reset() const;
 	/**
 	 * Reads from the conversion register.
 	 * @return 16-bit value

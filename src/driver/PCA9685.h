@@ -28,18 +28,19 @@ namespace wanhive {
 /**
  * User space PCA9685 driver.
  * @note PCA9685 is a 16-channel, 12-bit resolution PWM controller.
- * @note Supports the internal oscillator only.
+ * @note This driver supports the internal oscillator only.
+ * @note Responds to the I2C general-call reset command.
  */
 class PCA9685: protected SMBus {
 public:
 	/**
-	 * Constructor: initializes a PCA9685 driver.
+	 * Constructor: initializes the device.
 	 * @param bus i2c adapter's identifier
 	 * @param address device identifier (typically 0x40)
 	 */
 	PCA9685(unsigned int bus, unsigned int address = I2C_ADDR);
 	/**
-	 * Constructor: initializes a PCA9685 driver.
+	 * Constructor: initializes the device.
 	 * @param path i2c adapter's pathname
 	 * @param address device identifier (typically 0x40)
 	 */
@@ -48,10 +49,7 @@ public:
 	 * Destructor: closes the i2c bus.
 	 */
 	~PCA9685() noexcept;
-	/**
-	 * Resets the device (uses the general call reset).
-	 */
-	void reset() const;
+
 	/**
 	 * Restarts the device.
 	 */
@@ -77,14 +75,14 @@ public:
 	 */
 	void setOutputMode(bool invert, bool openDrain) const;
 	/**
-	 * Reads the output modulation frequency (with internal oscillator).
+	 * Reads the output modulation frequency (internal oscillator).
 	 * @return current output frequency in Hz
 	 */
 	unsigned int getFrequency() const;
 	/**
-	 * Sets the output modulation frequency (with internal oscillator).
+	 * Sets the output modulation frequency (internal oscillator).
 	 * @param frequency desired output frequency in Hz
-	 * @return output frequency been set
+	 * @return output frequency (Hz)
 	 */
 	unsigned int setFrequency(unsigned int frequency) const;
 	/**

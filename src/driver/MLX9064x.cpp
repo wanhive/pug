@@ -43,10 +43,6 @@ MLX9064x::~MLX9064x() {
 
 }
 
-void MLX9064x::reset() {
-	I2C::resetAll();
-}
-
 uint16_t MLX9064x::readReg(uint16_t command) const {
 	uint16_t data = 0;
 	readReg(command, 1, &data);

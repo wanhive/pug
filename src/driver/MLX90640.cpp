@@ -117,11 +117,13 @@ void MLX90640::reset() {
 	auto control = readReg(REG_CTRL);
 	control |= mask;
 	writeReg(REG_CTRL, control);
-	MLX9064x::reset();
+	I2C::resetAll();
 	control = readReg(REG_CTRL);
 	if ((control & mask) != 0) {
 		throw Exception(EX_OPERATION);
 	}
+
+	Timer::sleep(1000);
 }
 
 void MLX90640::setConfiguration(const MLX90640Config &config) const {

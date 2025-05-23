@@ -48,10 +48,6 @@ ADS111x::~ADS111x() {
 
 }
 
-void ADS111x::reset() const {
-	I2C::resetAll();
-}
-
 unsigned short ADS111x::getConversion() const {
 	return be16toh(SMBus::readWord(CONVERSION_REG));
 }

@@ -29,6 +29,7 @@ namespace wanhive {
 /**
  * Bare bone MLX90640/MLX90641 thermal imaging camera driver.
  * @note Provides the common I/O facilities over an I2C interface.
+ * @note Responds to the I2C general-call reset command.
  */
 class MLX9064x: protected I2C {
 public:
@@ -48,10 +49,6 @@ public:
 	 * Destructor: closes the i2c bus.
 	 */
 	~MLX9064x();
-	/**
-	 * Resets the device (uses the general call reset).
-	 */
-	void reset();
 	/**
 	 * Reads a word from a given register.
 	 * @param command register's identifier

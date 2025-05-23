@@ -117,19 +117,20 @@ struct MLX90640Data {
 
 /**
  * MLX90640 IR thermal camera driver.
+ * @note Uses the I2C general-call reset command for soft-reset.
  */
 class MLX90640: protected MLX9064x {
 public:
 	/**
-	 * Constructor: initializes the device.
+	 * Constructor: initializes the sensor.
 	 * @param bus i2c adapter's identifier
-	 * @param address address device identifier (typically 0x33)
+	 * @param address device identifier (typically 0x33)
 	 */
 	MLX90640(unsigned int bus, unsigned int address = I2C_ADDR);
 	/**
-	 * Constructor: initializes the device.
+	 * Constructor: initializes the sensor.
 	 * @param path i2c adapter's pathname
-	 * @param address address device identifier (typically 0x33)
+	 * @param address device identifier (typically 0x33)
 	 */
 	MLX90640(const char *path, unsigned int address = I2C_ADDR);
 	/**
@@ -137,20 +138,20 @@ public:
 	 */
 	~MLX90640();
 	/**
-	 * Configures the driver and triggers fresh measurement cycle.
+	 * Initializes the sensor and performs soft-reset.
 	 */
 	void setup();
 	/**
-	 * Triggers fresh measurement cycle (uses general call reset).
+	 * Performs soft reset and triggers fresh measurement cycle.
 	 */
 	void reset();
 	/**
-	 * Updates device's control register 1.
+	 * Updates sensor's configuration (control register 1).
 	 * @param config desired configuration.
 	 */
 	void setConfiguration(const MLX90640Config &config) const;
 	/**
-	 * Reads device's control register 1.
+	 * Reads sensor's configuration (control register 1).
 	 * @param config current configuration
 	 */
 	void getConfiguration(MLX90640Config &config) const;
@@ -160,7 +161,7 @@ public:
 	 */
 	void selectSubPage(MLX90640SubPage page) const;
 	/**
-	 * Starts new measurement (clears status register's data available bit).
+	 * Starts a new measurement (clears status register's data available bit).
 	 */
 	void begin() const;
 	/**

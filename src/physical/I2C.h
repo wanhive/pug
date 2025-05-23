@@ -96,7 +96,7 @@ public:
 	 */
 	void select(const I2CDevice &device) const;
 	/**
-	 * Sends out a general call reset to all devices.
+	 * Sends out the general-call reset command.
 	 */
 	void resetAll() const;
 private:

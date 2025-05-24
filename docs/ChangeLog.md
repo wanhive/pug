@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow the JPEG image quality to go down to zero (0).
 - **I2C::resetAll** member function should have const modifier.
+- **BMM350** magnetometer driver initialization and soft-reset errors.
 
 ## [0.10.0] - 2025-05-15
 

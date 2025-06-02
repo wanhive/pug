@@ -998,11 +998,7 @@ void BMM350::magneticResetAndWait() {
 	struct BMM350PmuCmdStatus0 pmu_cmd_stat_0 = { 0 };
 	uint8_t restore_normal = BMM350_DISABLE;
 
-	//TODO: something
-	/*if ((rslt == BMM350_OK) && (dev->mraw_override)
-	 && (dev->var_id >= BMM350_MIN_VAR)) {
-	 rslt = dev->mraw_override(dev);
-	 } else */
+	//TODO: magnetic wait and reset override
 
 	/* Read PMU CMD status */
 	getPMUCommandStatus0(pmu_cmd_stat_0);

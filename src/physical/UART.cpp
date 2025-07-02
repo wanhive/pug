@@ -81,9 +81,9 @@ void setFlowControl(wanhive::TerminalConfig &tc, bool enable) noexcept {
 	}
 }
 
-void setBlockingMode(wanhive::TerminalConfig &tc, bool block) {
+void setBlockingMode(wanhive::TerminalConfig &tc, bool block) noexcept {
 	tc.setControl(VTIME, 0);
-	tc.setControl(VMIN, (block ? 1 : 0));
+	tc.setControl(VMIN, 1);
 }
 
 }  // namespace

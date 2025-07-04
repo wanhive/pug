@@ -23,6 +23,7 @@
 #ifndef WH_DEVICE_GIMBAL_H_
 #define WH_DEVICE_GIMBAL_H_
 #include "PWM.h"
+#include "ServoControl.h"
 
 namespace wanhive {
 /**
@@ -48,7 +49,6 @@ public:
 	 * Destructor: closes the i2c bus.
 	 */
 	~Gimbal();
-
 	/**
 	 * Controls the pan axis.
 	 * @param value orientation in degrees
@@ -74,7 +74,19 @@ public:
 	 * @param on true to activate, false to deactivate
 	 */
 	void alert(bool on) const;
+protected:
+	/**
+	 * Updates the servo control parameters.
+	 * @param center neutral pulse width (microseconds)
+	 * @param slope control signal's linear gradient
+	 */
+	void configure(unsigned int center, double slope) noexcept;
+private:
+	unsigned int pulseWidth(const ServoControl &sc,
+			unsigned int angle) const noexcept;
 public:
+	/*! Neutral position in degrees */
+	static constexpr unsigned int CENTER = 90;
 	/*! Minimum pan angle in degrees */
 	static constexpr unsigned int PAN_MIN = 0;
 	/*! Maximum pan angle in degrees */
@@ -89,19 +101,23 @@ public:
 	static constexpr unsigned int TILT_MAX = 180;
 
 	/*! Pan control pin */
-	static constexpr unsigned int PAN_CTRL = 0;
+	static constexpr unsigned int CTRL_PAN = 0;
 	/*! Roll control pin */
-	static constexpr unsigned int ROLL_CTRL = 2;
+	static constexpr unsigned int CTRL_ROLL = 2;
 	/*! Tilt control pin */
-	static constexpr unsigned int TILT_CTRL = 4;
+	static constexpr unsigned int CTRL_TILT = 4;
 	/*! Alert control pin */
-	static constexpr unsigned int ALERT_CTRL = 6;
+	static constexpr unsigned int CTRL_ALERT = 6;
 private:
 	struct {
 		unsigned int pan { 360 };
 		unsigned int roll { 360 };
 		unsigned int tilt { 360 };
 	} axis;
+
+	ServoControl _pan;
+	ServoControl _roll;
+	ServoControl _tilt;
 };
 
 } /* namespace wanhive */

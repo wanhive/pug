@@ -26,23 +26,27 @@
 
 namespace wanhive {
 /**
- * PWM controller with a fixed output modulation frequency (50 Hz).
+ * PWM controller with a fixed output modulation frequency.
  * @note Produces servo/digital/pwm outputs
  */
 class PWM: protected PCA9685 {
 public:
 	/**
 	 * Constructor: initializes the controller and sets it's frequency.
+	 * @param frequency output modulation frequency (Hz)
 	 * @param bus i2c adapter's identifier
-	 * @param address device identifier
+	 * @param address  device identifier
 	 */
-	PWM(unsigned int bus, unsigned int address = I2C_ADDR);
+	PWM(unsigned int frequency, unsigned int bus, unsigned int address =
+			I2C_ADDR);
 	/**
 	 * Constructor: initializes the controller and sets it's frequency.
-	 * @param path adapter's pathname
-	 * @param address device identifier
+	 * @param frequency output modulation frequency (Hz)
+	 * @param path i2c adapter's pathname
+	 * @param address  device identifier
 	 */
-	PWM(const char *path, unsigned int address = I2C_ADDR);
+	PWM(unsigned int frequency, const char *path, unsigned int address =
+			I2C_ADDR);
 	/**
 	 * Destructor: closes the i2c bus.
 	 */
@@ -50,9 +54,9 @@ public:
 	/**
 	 * Applies pulse of a given width to the servo motor's control wire.
 	 * @param pin the pin number (0-15)
-	 * @param pulse pulse width in microseconds
+	 * @param value pulse width in microseconds
 	 */
-	void servo(unsigned int pin, unsigned int pulse = SERVO_CENTER) const;
+	void servo(unsigned int pin, unsigned int value) const;
 	/**
 	 * Sets a pin to logic high.
 	 * @param pin the pin number (0-15)
@@ -63,15 +67,13 @@ public:
 	 * @param pin the pin number (0-15)
 	 */
 	void low(unsigned int pin) const;
-	using PCA9685::pulse;
 private:
-	using PCA9685::getFrequency;
 	using PCA9685::setFrequency;
 public:
-	/*! Output modulation frequency (Hz) */
-	static const unsigned int FREQUENCY;
-	/*! Pulse width in microseconds to center the servo motor */
-	static const unsigned int SERVO_CENTER;
+	/*! Default output modulation frequency (Hz) */
+	static constexpr unsigned int FREQUENCY = 50;
+private:
+	const unsigned int _frequency;
 };
 
 } /* namespace wanhive */

@@ -22,35 +22,25 @@
 
 #include "PWM.h"
 
-#ifndef WH_PWM_FREQUENCY
-#define WH_PWM_FREQUENCY 50U
-#endif
-#ifndef WH_SERVO_NEUTRAL_PULSE
-#define WH_SERVO_NEUTRAL_PULSE 1500U
-#endif
-
 namespace wanhive {
 
-const unsigned int PWM::FREQUENCY = WH_PWM_FREQUENCY;
-const unsigned int PWM::SERVO_CENTER = WH_SERVO_NEUTRAL_PULSE;
+PWM::PWM(unsigned int frequency, unsigned int bus, unsigned int address) :
+		PCA9685 { bus, address }, _frequency { setFrequency(frequency) } {
 
-PWM::PWM(unsigned int bus, unsigned int address) :
-		PCA9685(bus, address) {
-	setFrequency(FREQUENCY);
 }
 
-PWM::PWM(const char *path, unsigned int address) :
-		PCA9685(path, address) {
-	setFrequency(FREQUENCY);
+PWM::PWM(unsigned int frequency, const char *path, unsigned int address) :
+		PCA9685 { path, address }, _frequency { setFrequency(frequency) } {
+
 }
 
 PWM::~PWM() {
 
 }
 
-void PWM::servo(unsigned int pin, unsigned int pulse) const {
-	unsigned int value = ((PWM_MAX * (pulse * FREQUENCY / 1000000.0)) + 0.5);
-	pwmWrite(pin, value);
+void PWM::servo(unsigned int pin, unsigned int value) const {
+	unsigned int pwm = ((PWM_MAX * (value * _frequency / 1000000.0)) + 0.5);
+	pwmWrite(pin, pwm);
 }
 
 void PWM::high(unsigned int pin) const {

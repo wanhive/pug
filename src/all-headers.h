@@ -28,6 +28,7 @@
 #include "device/Image.h"
 #include "device/Jpeg.h"
 #include "device/PWM.h"
+#include "device/ServoControl.h"
 #include "device/ViewFinder.h"
 #include "driver/ADS111x.h"
 #include "driver/BME280.h"

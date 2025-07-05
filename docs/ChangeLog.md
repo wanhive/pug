@@ -5,25 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.11.0] - 2025-07-05
 
 ### Added
 
-- Uncompressed RGB data to JPEG conversion.
-- BMI270 sensor drive strength control function.
-- **PCA9685::pulse** member function for PWM control.
+- Raw RGB data to JPEG conversion.
+- Drive strength control function in the **BMI270** driver.
+- PWM control function in the **PCA9685** driver.
 
 ### Changed
 
-- **PWM** and **Gimbal** re-implementation.
+- **PWM** and **Gimbal** controllers re-implementation.
 - Increase the pulse width parameter's precision from milliseconds to microseconds in **PWM::servo**.
 - Update the **UART driver** to make it compatible with the I/O multiplexer.
 
 ### Fixed
 
-- Permit full [0% - 100%] range for the JPEG image quality.
+- **BMM350** driver initialization and soft-reset errors.
+- Allow full [0% - 100%] range for JPEG image quality.
 - **I2C::resetAll** member function should have const modifier.
-- **BMM350** magnetometer driver initialization and soft-reset should work correctly.
 
 ## [0.10.0] - 2025-05-15
 

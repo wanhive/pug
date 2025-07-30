@@ -24,6 +24,7 @@
 #include <wanhive/base/common/Exception.h>
 #include <wanhive/base/unix/Config.h>
 #include <wanhive/base/unix/SystemException.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 namespace wanhive {
@@ -148,6 +149,26 @@ void Terminal::sendBreak(int duration) const {
 	if (::tcsendbreak(File::get(), duration) == -1) {
 		throw SystemException();
 	}
+}
+
+void Terminal::setBreakCondition() const {
+#ifdef TIOCSBRK
+	if (::ioctl(File::get(), TIOCSBRK) == -1) {
+		throw SystemException();
+	}
+#else
+	throw Exception(EX_OPERATION);
+#endif
+}
+
+void Terminal::clearBreakCondition() const {
+#ifdef TIOCCBRK
+	if (::ioctl(File::get(), TIOCCBRK) == -1) {
+		throw SystemException();
+	}
+#else
+	throw Exception(EX_OPERATION);
+#endif
 }
 
 cc_t Terminal::vdisable() const {

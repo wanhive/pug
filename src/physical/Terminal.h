@@ -96,6 +96,14 @@ public:
 	 */
 	void sendBreak(int duration = 0) const;
 	/**
+	 * Pulls the TX line low (turns break on).
+	 */
+	void setBreakCondition() const;
+	/**
+	 * Restores the TX line to high/idle (turns break off).
+	 */
+	void clearBreakCondition() const;
+	/**
 	 * Returns the _PC_VDISABLE option's value for the terminal device.
 	 * @return _PC_VDISABLE value
 	 */

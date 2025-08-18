@@ -420,9 +420,7 @@ namespace {
 
 void swapFields(unsigned index1, unsigned index2,
 		wanhive::BME68xData *field[]) noexcept {
-	wanhive::BME68xData *temp;
-
-	temp = field[index1];
+	auto temp = field[index1];
 	field[index1] = field[index2];
 	field[index2] = temp;
 }
@@ -472,7 +470,7 @@ void BME68x::getConfiguration(BME68xConfig &config) const {
 	uint8_t reg_addr = BME68X_REG_CTRL_GAS_1;
 	uint8_t data_array[BME68X_LEN_CONFIG];
 
-	SMBus::read(reg_addr, 5, data_array);
+	SMBus::read(reg_addr, BME68X_LEN_CONFIG, data_array);
 	config.osr.humidity = static_cast<BME68XOverSampling>(BME68X_GET_BITS_POS_0(
 			data_array[1], BME68X_OSH));
 	config.osr.temperature = static_cast<BME68XOverSampling>(BME68X_GET_BITS(
@@ -582,7 +580,7 @@ void BME68x::setHeaterConfiguration(BME68XMode opMode,
 }
 
 unsigned int BME68x::getMeasurementDuration(BME68XMode opMode,
-		const BME68xConfig &config) noexcept {
+		const BME68xConfig &config) const noexcept {
 	uint32_t meas_dur = 0; /* Calculate in us */
 	uint32_t meas_cycles;
 	uint8_t os_to_meas_cycles[6] = { 0, 1, 2, 4, 8, 16 };

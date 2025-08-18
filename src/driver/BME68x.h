@@ -241,7 +241,7 @@ public:
 	 * @return duration in microseconds
 	 */
 	unsigned int getMeasurementDuration(BME68XMode opMode,
-			const BME68xConfig &conf) noexcept;
+			const BME68xConfig &conf) const noexcept;
 	/**
 	 * Returns sensor data in the forced mode.
 	 * @param data stores the sensor data

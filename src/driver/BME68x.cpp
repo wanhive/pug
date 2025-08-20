@@ -604,7 +604,7 @@ unsigned int BME68x::getMeasurementDuration(BME68XMode opMode,
 
 bool BME68x::getData(BME68xData &data) {
 	readFieldData(0, data);
-	if (data.status & BME68X_NEW_DATA_MSK) {
+	if (data.meta.status & BME68X_NEW_DATA_MSK) {
 		return true;
 	} else {
 		return false;
@@ -613,8 +613,8 @@ bool BME68x::getData(BME68xData &data) {
 
 unsigned int BME68x::getData(BME68xData (&data)[3]) {
 	unsigned int new_fields = 0;
-	BME68xData *field_ptr[3] = { 0 };
-	BME68xData field_data[3] = { { 0 } };
+	BME68xData *field_ptr[3] = { };
+	BME68xData field_data[3] = { };
 
 	field_ptr[0] = &field_data[0];
 	field_ptr[1] = &field_data[1];
@@ -625,7 +625,7 @@ unsigned int BME68x::getData(BME68xData (&data)[3]) {
 
 	new_fields = 0;
 	for (unsigned i = 0; (i < 3); i++) {
-		if (field_ptr[i]->status & BME68X_NEW_DATA_MSK) {
+		if (field_ptr[i]->meta.status & BME68X_NEW_DATA_MSK) {
 			new_fields++;
 		}
 	}
@@ -736,7 +736,7 @@ void BME68x::calibrate() {
 	calib.gas.res_heat_range = ((coeff_array[BME68X_IDX_RES_HEAT_RANGE]
 			& BME68X_RHRANGE_MSK) / 16);
 	calib.gas.res_heat_val = (int8_t) coeff_array[BME68X_IDX_RES_HEAT_VAL];
-	calib.range_sw_err = ((int8_t) (coeff_array[BME68X_IDX_RANGE_SW_ERR]
+	calib.gas.range_sw_err = ((int8_t) (coeff_array[BME68X_IDX_RANGE_SW_ERR]
 			& BME68X_RSERROR_MSK)) / 16;
 }
 
@@ -822,9 +822,9 @@ void BME68x::readFieldData(unsigned char index, BME68xData &data) {
 		SMBus::read((BME68X_REG_FIELD0 + (index * BME68X_LEN_FIELD_OFFSET)),
 		BME68X_LEN_FIELD, buff);
 
-		data.status = buff[0] & BME68X_NEW_DATA_MSK;
-		data.gasIndex = buff[0] & BME68X_GAS_INDEX_MSK;
-		data.measurementIndex = buff[1];
+		data.meta.status = buff[0] & BME68X_NEW_DATA_MSK;
+		data.meta.gasIndex = buff[0] & BME68X_GAS_INDEX_MSK;
+		data.meta.measurementIndex = buff[1];
 
 		/* read the raw data from the sensor */
 		adc_pres = (uint32_t) (((uint32_t) buff[2] * 4096)
@@ -839,28 +839,29 @@ void BME68x::readFieldData(unsigned char index, BME68xData &data) {
 		gas_range_l = buff[14] & BME68X_GAS_RANGE_MSK;
 		gas_range_h = buff[16] & BME68X_GAS_RANGE_MSK;
 		if (dev.variantId == VARIANT_GAS_HIGH) {
-			data.status |= buff[16] & BME68X_GASM_VALID_MSK;
-			data.status |= buff[16] & BME68X_HEAT_STAB_MSK;
+			data.meta.status |= buff[16] & BME68X_GASM_VALID_MSK;
+			data.meta.status |= buff[16] & BME68X_HEAT_STAB_MSK;
 		} else {
-			data.status |= buff[14] & BME68X_GASM_VALID_MSK;
-			data.status |= buff[14] & BME68X_HEAT_STAB_MSK;
+			data.meta.status |= buff[14] & BME68X_GASM_VALID_MSK;
+			data.meta.status |= buff[14] & BME68X_HEAT_STAB_MSK;
 		}
 
-		if ((data.status & BME68X_NEW_DATA_MSK)) {
-			data.heaterResistance = SMBus::readByte(
-			BME68X_REG_RES_HEAT0 + data.gasIndex);
-			data.idac = SMBus::readByte(BME68X_REG_IDAC_HEAT0 + data.gasIndex);
-			data.gasWait = SMBus::readByte(
-			BME68X_REG_GAS_WAIT0 + data.gasIndex);
+		if ((data.meta.status & BME68X_NEW_DATA_MSK)) {
+			data.meta.heaterResistance = SMBus::readByte(
+			BME68X_REG_RES_HEAT0 + data.meta.gasIndex);
+			data.meta.idac = SMBus::readByte(
+			BME68X_REG_IDAC_HEAT0 + data.meta.gasIndex);
+			data.meta.gasWait = SMBus::readByte(
+			BME68X_REG_GAS_WAIT0 + data.meta.gasIndex);
 
 			data.temperature = calculateTemperature(adc_temp);
 			data.pressure = calculatePressure(adc_pres);
 			data.humidity = calculateHumidity(adc_hum);
 			if (dev.variantId == VARIANT_GAS_HIGH) {
-				data.gasResistance = calculateGasResistanceHigh(
+				data.gas = calculateGasResistanceHigh(
 						adc_gas_res_high, gas_range_h);
 			} else {
-				data.gasResistance = calculateGasResistanceLow(adc_gas_res_low,
+				data.gas = calculateGasResistanceLow(adc_gas_res_low,
 						gas_range_l);
 			}
 
@@ -896,9 +897,9 @@ void BME68x::readAllFieldData(BME68xData *(&data)[3]) {
 
 	for (unsigned i = 0; (i < 3); i++) {
 		off = (uint8_t) (i * BME68X_LEN_FIELD);
-		data[i]->status = buff[off] & BME68X_NEW_DATA_MSK;
-		data[i]->gasIndex = buff[off] & BME68X_GAS_INDEX_MSK;
-		data[i]->measurementIndex = buff[off + 1];
+		data[i]->meta.status = buff[off] & BME68X_NEW_DATA_MSK;
+		data[i]->meta.gasIndex = buff[off] & BME68X_GAS_INDEX_MSK;
+		data[i]->meta.measurementIndex = buff[off + 1];
 
 		/* read the raw data from the sensor */
 		adc_pres = (uint32_t) (((uint32_t) buff[off + 2] * 4096)
@@ -916,24 +917,24 @@ void BME68x::readAllFieldData(BME68xData *(&data)[3]) {
 		gas_range_l = buff[off + 14] & BME68X_GAS_RANGE_MSK;
 		gas_range_h = buff[off + 16] & BME68X_GAS_RANGE_MSK;
 		if (dev.variantId == VARIANT_GAS_HIGH) {
-			data[i]->status |= buff[off + 16] & BME68X_GASM_VALID_MSK;
-			data[i]->status |= buff[off + 16] & BME68X_HEAT_STAB_MSK;
+			data[i]->meta.status |= buff[off + 16] & BME68X_GASM_VALID_MSK;
+			data[i]->meta.status |= buff[off + 16] & BME68X_HEAT_STAB_MSK;
 		} else {
-			data[i]->status |= buff[off + 14] & BME68X_GASM_VALID_MSK;
-			data[i]->status |= buff[off + 14] & BME68X_HEAT_STAB_MSK;
+			data[i]->meta.status |= buff[off + 14] & BME68X_GASM_VALID_MSK;
+			data[i]->meta.status |= buff[off + 14] & BME68X_HEAT_STAB_MSK;
 		}
 
-		data[i]->idac = set_val[data[i]->gasIndex];
-		data[i]->heaterResistance = set_val[10 + data[i]->gasIndex];
-		data[i]->gasWait = set_val[20 + data[i]->gasIndex];
+		data[i]->meta.idac = set_val[data[i]->meta.gasIndex];
+		data[i]->meta.heaterResistance = set_val[10 + data[i]->meta.gasIndex];
+		data[i]->meta.gasWait = set_val[20 + data[i]->meta.gasIndex];
 		data[i]->temperature = calculateTemperature(adc_temp);
 		data[i]->pressure = calculatePressure(adc_pres);
 		data[i]->humidity = calculateHumidity(adc_hum);
 		if (dev.variantId == VARIANT_GAS_HIGH) {
-			data[i]->gasResistance = calculateGasResistanceHigh(
+			data[i]->gas = calculateGasResistanceHigh(
 					adc_gas_res_high, gas_range_h);
 		} else {
-			data[i]->gasResistance = calculateGasResistanceLow(adc_gas_res_low,
+			data[i]->gas = calculateGasResistanceLow(adc_gas_res_low,
 					gas_range_l);
 		}
 	}
@@ -945,15 +946,15 @@ void BME68x::sortSensorData(unsigned lowIndex, unsigned highIndex,
 	int16_t meas_index1;
 	int16_t meas_index2;
 
-	meas_index1 = (int16_t) field[lowIndex]->measurementIndex;
-	meas_index2 = (int16_t) field[highIndex]->measurementIndex;
-	if ((field[lowIndex]->status & BME68X_NEW_DATA_MSK)
-			&& (field[highIndex]->status & BME68X_NEW_DATA_MSK)) {
+	meas_index1 = (int16_t) field[lowIndex]->meta.measurementIndex;
+	meas_index2 = (int16_t) field[highIndex]->meta.measurementIndex;
+	if ((field[lowIndex]->meta.status & BME68X_NEW_DATA_MSK)
+			&& (field[highIndex]->meta.status & BME68X_NEW_DATA_MSK)) {
 		int16_t diff = meas_index2 - meas_index1;
 		if (((diff > -3) && (diff < 0)) || (diff > 2)) {
 			swapFields(lowIndex, highIndex, field);
 		}
-	} else if (field[highIndex]->status & BME68X_NEW_DATA_MSK) {
+	} else if (field[highIndex]->meta.status & BME68X_NEW_DATA_MSK) {
 		swapFields(lowIndex, highIndex, field);
 	}
 }
@@ -1083,7 +1084,7 @@ unsigned int BME68x::calculateGasResistanceLow(unsigned short raw,
 					250000), UINT32_C(125000) };
 
 	/*lint -save -e704 */
-	var1 = (int64_t) ((1340 + (5 * (int64_t) calib.range_sw_err))
+	var1 = (int64_t) ((1340 + (5 * (int64_t) calib.gas.range_sw_err))
 			* ((int64_t) lookup_table1[range])) >> 16;
 	var2 = (((int64_t) ((int64_t) raw << 15) - (int64_t) (16777216)) + var1);
 	var3 = (((int64_t) lookup_table2[range] * (int64_t) var1) >> 9);

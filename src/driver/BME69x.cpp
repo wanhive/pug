@@ -527,8 +527,6 @@ void BME69x::setConfiguration(const BME69xConfig &conf) const {
 
 	/* Read the whole configuration and write it back once later */
 	SMBus::read(reg_array[0], BME69X_LEN_CONFIG, data_array);
-	//rslt = bme69x_get_regs(reg_array[0], data_array, BME69X_LEN_CONFIG, dev);
-	//dev->info_msg = BME69X_OK;
 
 	data_array[4] = BME69X_SET_BITS(data_array[4], BME69X_FILTER, conf.filter);
 	data_array[3] = BME69X_SET_BITS(data_array[3], BME69X_OST,
@@ -552,8 +550,6 @@ void BME69x::setConfiguration(const BME69xConfig &conf) const {
 }
 
 void BME69x::getConfiguration(BME69xConfig &conf) const {
-	//int8_t rslt;
-
 	/* starting address of the register array for burst read*/
 	uint8_t reg_addr = BME69X_REG_CTRL_GAS_1;
 	uint8_t data_array[BME69X_LEN_CONFIG];
@@ -635,7 +631,7 @@ void BME69x::setAmbientTemperature(char temperature) noexcept {
 
 bool BME69x::getData(BME69xData &data) const {
 	readFieldData(0, data);
-	if (data.status & BME69X_NEW_DATA_MSK) {
+	if (data.meta.status & BME69X_NEW_DATA_MSK) {
 		return true;
 	} else {
 		return false;
@@ -644,8 +640,8 @@ bool BME69x::getData(BME69xData &data) const {
 
 unsigned int BME69x::getData(BME69xData (&data)[3]) const {
 	uint8_t i = 0, j = 0, new_fields = 0;
-	BME69xData *field_ptr[3] = { 0 };
-	BME69xData field_data[3] = { { 0 } };
+	BME69xData *field_ptr[3] = { };
+	BME69xData field_data[3] = { };
 
 	field_ptr[0] = &field_data[0];
 	field_ptr[1] = &field_data[1];
@@ -656,7 +652,7 @@ unsigned int BME69x::getData(BME69xData (&data)[3]) const {
 
 	new_fields = 0;
 	for (i = 0; (i < 3); i++) {
-		if (field_ptr[i]->status & BME69X_NEW_DATA_MSK) {
+		if (field_ptr[i]->meta.status & BME69X_NEW_DATA_MSK) {
 			new_fields++;
 		}
 	}
@@ -690,9 +686,9 @@ void BME69x::readFieldData(unsigned char index, BME69xData &data) const {
 		SMBus::read(((BME69X_REG_FIELD0 + (index * BME69X_LEN_FIELD_OFFSET))),
 		BME69X_LEN_FIELD, buff);
 
-		data.status = buff[0] & BME69X_NEW_DATA_MSK;
-		data.gasIndex = buff[0] & BME69X_GAS_INDEX_MSK;
-		data.measurementIndex = buff[1];
+		data.meta.status = buff[0] & BME69X_NEW_DATA_MSK;
+		data.meta.gasIndex = buff[0] & BME69X_GAS_INDEX_MSK;
+		data.meta.measurementIndex = buff[1];
 
 		/* read the raw data from the sensor */
 		adc_pres = (uint32_t) (((uint32_t) buff[2] << 16)
@@ -704,19 +700,21 @@ void BME69x::readFieldData(unsigned char index, BME69xData &data) const {
 
 		gas_range = buff[16] & BME69X_GAS_RANGE_MSK;
 
-		data.status |= buff[16] & BME69X_GASM_VALID_MSK;
-		data.status |= buff[16] & BME69X_HEAT_STAB_MSK;
+		data.meta.status |= buff[16] & BME69X_GASM_VALID_MSK;
+		data.meta.status |= buff[16] & BME69X_HEAT_STAB_MSK;
 
-		if ((data.status & BME69X_NEW_DATA_MSK)) {
-			data.heaterResistance = SMBus::readByte(
-			BME69X_REG_RES_HEAT0 + data.gasIndex);
-			data.idac = SMBus::readByte(BME69X_REG_IDAC_HEAT0 + data.gasIndex);
-			data.gasWait = SMBus::readByte(
-			BME69X_REG_GAS_WAIT0 + data.gasIndex);
-			data.temperature = calcTemperature(adc_temp, data.tCoefficient);
-			data.pressure = calcPressure(adc_pres, data.tCoefficient);
+		if ((data.meta.status & BME69X_NEW_DATA_MSK)) {
+			data.meta.heaterResistance = SMBus::readByte(
+			BME69X_REG_RES_HEAT0 + data.meta.gasIndex);
+			data.meta.idac = SMBus::readByte(
+			BME69X_REG_IDAC_HEAT0 + data.meta.gasIndex);
+			data.meta.gasWait = SMBus::readByte(
+			BME69X_REG_GAS_WAIT0 + data.meta.gasIndex);
+			data.temperature = calcTemperature(adc_temp,
+					data.meta.tCoefficient);
+			data.pressure = calcPressure(adc_pres, data.meta.tCoefficient);
 			data.humidity = calcHumidity(adc_hum, data.temperature);
-			data.gasResistance = calcGasResistance(adc_gas_res, gas_range);
+			data.gas = calcGasResistance(adc_gas_res, gas_range);
 			break;
 		}
 
@@ -750,9 +748,9 @@ void BME69x::readAllFieldData(BME69xData *(&data)[3]) const {
 
 	for (i = 0; (i < 3); i++) {
 		off = (uint8_t) (i * BME69X_LEN_FIELD);
-		data[i]->status = buff[off] & BME69X_NEW_DATA_MSK;
-		data[i]->gasIndex = buff[off] & BME69X_GAS_INDEX_MSK;
-		data[i]->measurementIndex = buff[off + 1];
+		data[i]->meta.status = buff[off] & BME69X_NEW_DATA_MSK;
+		data[i]->meta.gasIndex = buff[off] & BME69X_GAS_INDEX_MSK;
+		data[i]->meta.measurementIndex = buff[off + 1];
 
 		/* read the raw data from the sensor */
 		adc_pres = (uint32_t) (((uint32_t) buff[off + 2] << 16)
@@ -765,20 +763,21 @@ void BME69x::readAllFieldData(BME69xData *(&data)[3]) const {
 				| ((uint16_t) buff[off + 16] >> 6);
 		gas_range = buff[off + 16] & BME69X_GAS_RANGE_MSK;
 
-		data[i]->status |= buff[off + 16] & BME69X_GASM_VALID_MSK;
-		data[i]->status |= buff[off + 16] & BME69X_HEAT_STAB_MSK;
+		data[i]->meta.status |= buff[off + 16] & BME69X_GASM_VALID_MSK;
+		data[i]->meta.status |= buff[off + 16] & BME69X_HEAT_STAB_MSK;
 
-		data[i]->idac = set_val[data[i]->gasIndex];
-		data[i]->heaterResistance = set_val[10 + data[i]->gasIndex];
-		data[i]->gasWait = set_val[20 + data[i]->gasIndex];
+		data[i]->meta.idac = set_val[data[i]->meta.gasIndex];
+		data[i]->meta.heaterResistance = set_val[10 + data[i]->meta.gasIndex];
+		data[i]->meta.gasWait = set_val[20 + data[i]->meta.gasIndex];
 		/*
 		 * Fixed point calculation needs t_lin for pressure calculation
 		 * t_lin is calculated during temperature calculation
 		 */
-		data[i]->temperature = calcTemperature(adc_temp, data[i]->tCoefficient);
-		data[i]->pressure = calcPressure(adc_pres, data[i]->tCoefficient);
+		data[i]->temperature = calcTemperature(adc_temp,
+				data[i]->meta.tCoefficient);
+		data[i]->pressure = calcPressure(adc_pres, data[i]->meta.tCoefficient);
 		data[i]->humidity = calcHumidity(adc_hum, data[i]->temperature);
-		data[i]->gasResistance = calcGasResistance(adc_gas_res, gas_range);
+		data[i]->gas = calcGasResistance(adc_gas_res, gas_range);
 	}
 }
 
@@ -787,15 +786,15 @@ void BME69x::sortSensorData(unsigned lowIndex, unsigned highIndex,
 	int16_t meas_index1;
 	int16_t meas_index2;
 
-	meas_index1 = (int16_t) field[lowIndex]->measurementIndex;
-	meas_index2 = (int16_t) field[highIndex]->measurementIndex;
-	if ((field[lowIndex]->status & BME69X_NEW_DATA_MSK)
-			&& (field[highIndex]->status & BME69X_NEW_DATA_MSK)) {
+	meas_index1 = (int16_t) field[lowIndex]->meta.measurementIndex;
+	meas_index2 = (int16_t) field[highIndex]->meta.measurementIndex;
+	if ((field[lowIndex]->meta.status & BME69X_NEW_DATA_MSK)
+			&& (field[highIndex]->meta.status & BME69X_NEW_DATA_MSK)) {
 		int16_t diff = meas_index2 - meas_index1;
 		if (((diff > -3) && (diff < 0)) || (diff > 2)) {
 			swapFields(lowIndex, highIndex, field);
 		}
-	} else if (field[highIndex]->status & BME69X_NEW_DATA_MSK) {
+	} else if (field[highIndex]->meta.status & BME69X_NEW_DATA_MSK) {
 		swapFields(lowIndex, highIndex, field);
 	}
 }

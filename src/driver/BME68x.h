@@ -63,10 +63,10 @@
 
 namespace wanhive {
 /**
- * Oversampling setting
+ * Oversampling settings.
  */
 enum BME68XOverSampling : unsigned char {
-	BME68X_OS_NONE = (0),/**< Switch off measurement */
+	BME68X_OS_NONE = (0),/**< Switch off the measurement */
 	BME68X_OS_1X = (1), /**< Perform 1 measurement */
 	BME68X_OS_2X = (2), /**< Perform 2 measurements */
 	BME68X_OS_4X = (3), /**< Perform 4 measurements */
@@ -74,7 +74,7 @@ enum BME68XOverSampling : unsigned char {
 	BME68X_OS_16X = (5) /**< Perform 16 measurements */
 };
 /**
- * IIR Filter settings
+ * IIR Filter settings.
  */
 enum BME68XFilter : unsigned char {
 	BME68X_FILTER_OFF = (0), /**< Switch off the filter */
@@ -88,7 +88,7 @@ enum BME68XFilter : unsigned char {
 };
 
 /**
- * ODR/Standby time
+ * ODR/Standby time.
  */
 enum BME68XStandBy : unsigned char {
 	BME68X_SB_0_59_MS = (0),/**< Standby time of 0.59ms */
@@ -103,7 +103,7 @@ enum BME68XStandBy : unsigned char {
 };
 
 /**
- * Operating modes
+ * Operating modes.
  */
 enum BME68XMode : unsigned char {
 	BME68X_MODE_SLEEP = (0), /**< Sleep operation mode */
@@ -115,6 +115,7 @@ enum BME68XMode : unsigned char {
  * Over-sampling and filter settings.
  */
 struct BME68xConfig {
+	/*! Over-sampling settings */
 	struct {
 		/*! Humidity over-sampling */
 		BME68XOverSampling humidity;
@@ -141,6 +142,7 @@ struct BME68xHeaterConfig {
 	/*! Heating duration for forced mode in milliseconds */
 	unsigned short duration;
 
+	/*! Profiles */
 	struct {
 		/*! Heater temperature profile in degree Celsius */
 		unsigned short *temperature;
@@ -151,25 +153,27 @@ struct BME68xHeaterConfig {
 		/*! Heating duration for parallel mode in milliseconds */
 		unsigned short sharedDuration;
 	} profile;
-
 };
 
 /**
  * Sensor data.
  */
 struct BME68xData {
-	/*! Contains new_data, gasm_valid & heat_stab */
-	unsigned char status;
-	/*! The index of the heater profile used */
-	unsigned char gasIndex;
-	/*! Measurement index to track order */
-	unsigned char measurementIndex;
-	/*! Heater resistance */
-	unsigned char heaterResistance;
-	/*! Current DAC */
-	unsigned char idac;
-	/*! Gas wait period */
-	unsigned char gasWait;
+	/*! Meta data */
+	struct {
+		/*! Contains new_data, gasm_valid & heat_stab */
+		unsigned char status;
+		/*! The index of the heater profile used */
+		unsigned char gasIndex;
+		/*! Measurement index to track order */
+		unsigned char measurementIndex;
+		/*! Heater resistance */
+		unsigned char heaterResistance;
+		/*! Current DAC */
+		unsigned char idac;
+		/*! Gas wait period */
+		unsigned char gasWait;
+	} meta;
 
 	/*! Temperature in degree celsius x100 */
 	short temperature;
@@ -178,11 +182,11 @@ struct BME68xData {
 	/*! Humidity in % relative humidity x1000 */
 	unsigned int humidity;
 	/*! Gas resistance in Ohms */
-	unsigned int gasResistance;
+	unsigned int gas;
 };
 
 /**
- * User space driver for the BME68x (BME680, BME 688) environment sensors.
+ * User space driver for the BME68x (BME680, BME688) environment sensors.
  * @note Supports forced, parallel, and sequential modes over an I2C interface.
  * @ref https://github.com/boschsensortec/BME68x_SensorAPI
  */
@@ -345,9 +349,9 @@ private:
 			char par_g3;
 			unsigned char res_heat_range;
 			char res_heat_val;
+			char range_sw_err;
 		} gas;
 
-		char range_sw_err;
 		int t_fine;
 
 	} calib;

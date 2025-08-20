@@ -75,7 +75,7 @@ enum BME69XMode : unsigned char {
  * Oversampling settings
  */
 enum BME69XOverSampling : unsigned char {
-	BME69X_OS_NONE = (0),/**< Switch off measurement */
+	BME69X_OS_NONE = (0),/**< Switch off the measurement */
 	BME69X_OS_1X = (1), /**< Perform 1 measurement */
 	BME69X_OS_2X = (2), /**< Perform 2 measurements */
 	BME69X_OS_4X = (3), /**< Perform 4 measurements */
@@ -115,6 +115,7 @@ enum BME69XStandBy : unsigned char {
  * Over-sampling and filter settings
  */
 struct BME69xConfig {
+	/*! Over-sampling settings */
 	struct {
 		/*! Humidity over-sampling */
 		BME69XOverSampling humidity;
@@ -138,54 +139,46 @@ struct BME69xHeaterConfig {
 	/*! Heating duration for forced mode in milliseconds */
 	unsigned short duration;
 
+	/*! Profiles */
 	struct {
 		/*! Heater temperature profile in degree Celsius */
 		unsigned short *temperature;
-
 		/*! Heating duration profile in milliseconds */
 		unsigned short *duration;
-
 		/*! Length of the heating profile */
 		unsigned char length;
-
 		/*! Heating duration for parallel mode in milliseconds */
 		unsigned short sharedDuration;
 	} profile;
 };
 
 struct BME69xData {
-	/*! Contains new_data, gasm_valid & heat_stab */
-	unsigned char status;
-
-	/*! The index of the heater profile used */
-	unsigned char gasIndex;
-
-	/*! Measurement index to track order */
-	unsigned char measurementIndex;
-
-	/*! Heater resistance */
-	unsigned char heaterResistance;
-
-	/*! Current DAC */
-	unsigned char idac;
-
-	/*! Gas wait period */
-	unsigned char gasWait;
-
-	/*! Intermediate temperature co-efficient for pressure calculation */
-	unsigned int tCoefficient;
+	/*! Meta data */
+	struct {
+		/*! Contains new_data, gasm_valid & heat_stab */
+		unsigned char status;
+		/*! The index of the heater profile used */
+		unsigned char gasIndex;
+		/*! Measurement index to track order */
+		unsigned char measurementIndex;
+		/*! Heater resistance */
+		unsigned char heaterResistance;
+		/*! Current DAC */
+		unsigned char idac;
+		/*! Gas wait period */
+		unsigned char gasWait;
+		/*! Intermediate temperature co-efficient for pressure calculation */
+		unsigned int tCoefficient;
+	} meta;
 
 	/*! Temperature in degree celsius x100 */
 	short temperature;
-
 	/*! Pressure in Pascal */
 	unsigned int pressure;
-
 	/*! Humidity in % relative humidity x1000 */
 	unsigned int humidity;
-
 	/*! Gas resistance in Ohms */
-	unsigned int gasResistance;
+	unsigned int gas;
 };
 
 /**

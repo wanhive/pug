@@ -33,6 +33,7 @@
 #include "driver/ADS111x.h"
 #include "driver/BME280.h"
 #include "driver/BME68x.h"
+#include "driver/BME69x.h"
 #include "driver/BMI270.h"
 #include "driver/BMM350.h"
 #include "driver/MLX90640.h"

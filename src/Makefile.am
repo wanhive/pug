@@ -10,10 +10,10 @@ WH_PHY_SRCS = physical/GPIO.cpp physical/I2C.cpp physical/SMBus.cpp \
 
 ## src/driver
 WH_DRIV_HDRS = driver/ADS111x.h driver/BME280.h driver/BME68x.h \
-	driver/BMI270.h driver/BMM350.h driver/MLX9064x.h driver/MLX90640.h \
-	driver/PCA9685.h
+	driver/BME69x.h driver/BMI270.h driver/BMM350.h driver/MLX9064x.h \
+	driver/MLX90640.h driver/PCA9685.h
 WH_DRIV_SRCS = driver/ADS111x.cpp driver/BME280.cpp driver/BME68x.cpp \
-	driver/BMI270.cpp driver/BMM350.cpp driver/MLX9064x.cpp \
+	driver/BME69x.cpp driver/BMI270.cpp driver/BMM350.cpp driver/MLX9064x.cpp \
 	driver/MLX90640.cpp driver/PCA9685.cpp
 
 ## src/device

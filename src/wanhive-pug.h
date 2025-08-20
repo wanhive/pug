@@ -44,6 +44,7 @@
 /*
  * Peripherals (sensors and controllers)
  */
+#include "device/DataLogger.h"
 #include "device/Gimbal.h"
 #include "device/GPS.h"
 #include "device/ViewFinder.h"

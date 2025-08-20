@@ -23,6 +23,7 @@
 #ifndef WH_PUG_ALL_HEADERS_H_
 #define WH_PUG_ALL_HEADERS_H_
 
+#include "device/DataLogger.h"
 #include "device/Gimbal.h"
 #include "device/GPS.h"
 #include "device/Image.h"

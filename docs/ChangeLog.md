@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Finer break condition control of a terminal device.
 - BME690 gas sensor driver.
+- Basic data logger implementation.
+- Finer break condition control of a terminal device.
 
 ### Changed
 

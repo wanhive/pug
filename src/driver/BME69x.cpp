@@ -445,6 +445,7 @@ void BME69x::setup() {
 	if (dev.chipId == CHIP_ID) {
 		/* Read Variant ID */
 		dev.variantId = SMBus::readByte(BME69X_REG_VARIANT_ID);
+		dev.ambientTemperature = 25;
 		/* Get the Calibration data */
 		calibrate();
 	} else {
@@ -626,7 +627,7 @@ void BME69x::getHeaterConfiguration(BME69xHeaterConfig &conf) const {
 }
 
 void BME69x::setAmbientTemperature(char temperature) noexcept {
-	dev.temperature = temperature;
+	dev.ambientTemperature = temperature;
 }
 
 bool BME69x::getData(BME69xData &data) const {
@@ -1057,7 +1058,8 @@ unsigned char BME69x::calculateHeaterResistance(
 		temp = 400;
 	}
 
-	var1 = (((int32_t) dev.temperature * calib.gas.par_g3) / 1000U) * 256; /* par_g1 */
+	var1 = (((int32_t) dev.ambientTemperature * calib.gas.par_g3) / 1000U)
+			* 256; /* par_g1 */
 	var2 = (calib.gas.par_g1 + 784)
 			* (((((calib.gas.par_g2 + 154009UL) * temp * 5) / 100) + 3276800ULL)
 					/ 10); /* par_g2,

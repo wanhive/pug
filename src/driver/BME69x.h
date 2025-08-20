@@ -302,7 +302,7 @@ private:
 	struct {
 		unsigned char chipId;
 		unsigned char variantId;
-		char temperature;
+		char ambientTemperature;
 	} dev;
 
 	struct {

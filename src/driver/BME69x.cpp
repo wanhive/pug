@@ -24,7 +24,7 @@
  * This file incorporates work covered by the following copyright and
  * permission notice:
  *
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -888,6 +888,15 @@ unsigned int BME69x::calcHumidity(unsigned short raw,
 	var_H = var_H
 			- (((((var_H / 32768UL) * (var_H / 32768UL)) / 128UL)
 					* calib.hum.par_h6) / 16UL);
+
+	if (var_H < 0) {
+		var_H = 0;
+	}
+
+	if (var_H > 419430400) {
+		var_H = 419430400;
+	}
+
 	hum_comp = (uint32_t) (var_H / 4096UL);
 
 	return hum_comp;
@@ -902,7 +911,8 @@ unsigned int BME69x::calcGasResistance(unsigned short raw,
 	var2 *= INT32_C(3);
 	var2 = INT32_C(4096) + var2;
 
-	/* multiplying 10000 then dividing then multiplying by 100 instead of multiplying by 1000000 to prevent overflow */
+	/* multiplying 10000 then dividing then multiplying by 100 instead of
+	 * multiplying by 1000000 to prevent overflow */
 	calc_gas_res = (UINT32_C(10000) * var1) / (uint32_t) var2;
 	calc_gas_res = calc_gas_res * 100;
 
@@ -953,8 +963,17 @@ void BME69x::calibrate() {
 	/* Humidity related coefficients */
 	calib.hum.par_h5 = (int16_t) (((int16_t) coeff_array[BME69X_IDX_S_H_MSB]
 			<< 4) | (coeff_array[BME69X_IDX_S_H_LSB] >> 4));
+	if (calib.hum.par_h5 > 2047) {
+		/* Convert to negative value */
+		calib.hum.par_h5 = (int16_t) (calib.hum.par_h5 - 4096);
+	}
 	calib.hum.par_h1 = (int16_t) (((int16_t) coeff_array[BME69X_IDX_O_H_MSB]
 			<< 4) | (coeff_array[BME69X_IDX_O_H_LSB] & 0x0F));
+	/* Check if the value is above 2047 */
+	if (calib.hum.par_h1 > 2047) {
+		/* Convert to negative value */
+		calib.hum.par_h1 = (int16_t) (calib.hum.par_h1 - 4096);
+	}
 	calib.hum.par_h2 = (int8_t) coeff_array[BME69X_IDX_TK10H_C];
 	calib.hum.par_h4 = (int8_t) coeff_array[BME69X_IDX_par_h4];
 	calib.hum.par_h3 = (uint8_t) coeff_array[BME69X_IDX_par_h3];

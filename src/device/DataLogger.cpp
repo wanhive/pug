@@ -27,14 +27,15 @@
 
 namespace wanhive {
 
-DataLogger::DataLogger(const char *path, unsigned long long events) :
-		File { path, (O_WRONLY | O_CREAT | O_TRUNC), S_IRWXU }, limit { events } {
-	reset();
+DataLogger::DataLogger(const char *path) :
+		File { path, (O_WRONLY | O_CREAT | O_APPEND), (S_IRWXU | S_IRGRP
+				| S_IROTH) } {
+
 }
 
-DataLogger::DataLogger(int fd, unsigned long long events) :
-		File { fd }, limit { events } {
-	reset();
+DataLogger::DataLogger(int fd) :
+		File { fd } {
+
 }
 
 DataLogger::~DataLogger() {
@@ -42,26 +43,19 @@ DataLogger::~DataLogger() {
 }
 
 void DataLogger::insert(const char *format, ...) {
-	reset();
-
 	va_list ap;
 	va_start(ap, format);
 	auto status = vdprintf(File::get(), format, ap);
 	va_end(ap);
 
-	if (status >= 0) {
-		++events;
-	} else {
+	if (status < 0) {
 		throw SystemException();
 	}
 }
 
-void DataLogger::reset(bool forced) {
-	if (forced || (limit && events >= limit)) {
-		Storage::truncate(File::get(), 0);
-		Storage::seek(File::get(), 0, SEEK_SET);
-		events = 0;
-	}
+void DataLogger::reset() {
+	Storage::truncate(File::get(), 0);
+	Storage::seek(File::get(), 0, SEEK_SET);
 }
 
 } /* namespace wanhive */

@@ -26,40 +26,34 @@
 
 namespace wanhive {
 /**
- * Bare minimum data logger.
- * @note Records sensor data over time.
+ * Basic data logger.
  */
 class DataLogger: protected File {
 public:
 	/**
 	 * Constructor: initializes the data logger.
 	 * @param path log file's absolute pathname
-	 * @param events maximum number of events
 	 */
-	DataLogger(const char *path, unsigned long long events);
+	DataLogger(const char *path);
 	/**
 	 * Constructor: initializes the data logger.
 	 * @param fd log file's descriptor
-	 * @param events maximum number of events
 	 */
-	DataLogger(int fd, unsigned long long events);
+	DataLogger(int fd);
 	/**
 	 * Destructor: closes the log file.
 	 */
 	~DataLogger();
 	/**
-	 * Writes new data into the log file.
-	 * @param format data format string
+	 * Writes data to the log file.
+	 * @param format format string, subsequent arguments are converted
+	 * for output (just like printf)
 	 */
 	void insert(const char *format, ...);
 	/**
 	 * Truncates the log file.
-	 * @param forced true to force, false to truncate only on overflow
 	 */
-	void reset(bool forced = false);
-private:
-	const unsigned long long limit;
-	unsigned long long events { 0 };
+	void reset();
 };
 
 } /* namespace wanhive */

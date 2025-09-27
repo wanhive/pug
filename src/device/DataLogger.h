@@ -51,9 +51,9 @@ public:
 	 */
 	void insert(const char *format, ...);
 	/**
-	 * Truncates the log file.
+	 * Removes all data from the log file.
 	 */
-	void reset();
+	void clear();
 };
 
 } /* namespace wanhive */

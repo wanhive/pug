@@ -53,7 +53,7 @@ void DataLogger::insert(const char *format, ...) {
 	}
 }
 
-void DataLogger::reset() {
+void DataLogger::clear() {
 	Storage::truncate(File::get(), 0);
 	Storage::seek(File::get(), 0, SEEK_SET);
 }

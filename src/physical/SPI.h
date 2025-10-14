@@ -56,7 +56,7 @@ public:
 	 */
 	SPI(unsigned int bus, unsigned int device);
 	/**
-	 * Constructor: opens SPI device.
+	 * Constructor: opens and configures SPI device.
 	 * @param bus bus identifier
 	 * @param device chip selector
 	 * @param cfg configuration data
@@ -68,7 +68,7 @@ public:
 	 */
 	SPI(const char *path);
 	/**
-	 * Constructor: opens SPI device.
+	 * Constructor: opens and configures SPI device.
 	 * @param path adapter's pathname
 	 * @param cfg configuration data
 	 */
@@ -79,9 +79,9 @@ public:
 	~SPI();
 	//-----------------------------------------------------------------
 	/**
-	 * Writes data to a device and then reads data in return.
-	 * @param tx data to write
-	 * @param txBytes number of bytes to writer
+	 * Writes data to a device and then reads data from it (in that order).
+	 * @param tx outgoing data buffer
+	 * @param txBytes number of bytes to write
 	 * @param rx incoming data buffer
 	 * @param rxBytes number of bytes to read
 	 */
@@ -90,7 +90,7 @@ public:
 	/**
 	 * Writes data to a device and reads data from it simultaneously. Send and
 	 * receive buffers can be the same.
-	 * @param tx data to write
+	 * @param tx outgoing data buffer
 	 * @param rx incoming data buffer
 	 * @param bytes number of bytes to transfer
 	 */

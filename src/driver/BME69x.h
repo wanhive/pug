@@ -168,7 +168,7 @@ struct BME69xData {
 		/*! Gas wait period */
 		unsigned char gasWait;
 		/*! Intermediate temperature co-efficient for pressure calculation */
-		unsigned int tCoefficient;
+		unsigned int tCoeff;
 	} meta;
 
 	/*! Temperature in degree celsius x100 */
@@ -228,7 +228,7 @@ public:
 	 * @param conf sensor's configuration data
 	 * @return duration in microseconds
 	 */
-	unsigned int getMeasurementDuration(unsigned char mode,
+	unsigned int getMeasurementDuration(BME69XMode mode,
 			const BME69xConfig &conf) const noexcept;
 	/**
 	 * Writes new configuration data (over-sampling and filter) to the sensor.
@@ -245,7 +245,7 @@ public:
 	 * @param mode desired operation mode
 	 * @param conf new configuration data
 	 */
-	void setHeaterConfiguration(unsigned char mode,
+	void setHeaterConfiguration(BME69XMode mode,
 			const BME69xHeaterConfig &conf) const;
 	/**
 	 * Reads the sensor's gas-heater settings.

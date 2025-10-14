@@ -493,7 +493,7 @@ BME69XMode BME69x::getOperationMode() const {
 	return static_cast<BME69XMode>(mode & BME69X_MODE_MSK);
 }
 
-unsigned int BME69x::getMeasurementDuration(unsigned char mode,
+unsigned int BME69x::getMeasurementDuration(BME69XMode mode,
 		const BME69xConfig &conf) const noexcept {
 	uint32_t meas_dur = 0; /* Calculate in us */
 	uint32_t meas_cycles;
@@ -558,12 +558,12 @@ void BME69x::getConfiguration(BME69xConfig &conf) const {
 	SMBus::read(reg_addr, BME69X_LEN_CONFIG, data_array);
 	conf.osr.humidity = static_cast<BME69XOverSampling>(BME69X_GET_BITS_POS_0(
 			data_array[1], BME69X_OSH));
+	conf.filter = static_cast<BME69XFilter>(BME69X_GET_BITS(data_array[4],
+			BME69X_FILTER));
 	conf.osr.temperature = static_cast<BME69XOverSampling>(BME69X_GET_BITS(
 			data_array[3], BME69X_OST));
 	conf.osr.pressure = static_cast<BME69XOverSampling>(BME69X_GET_BITS(
 			data_array[3], BME69X_OSP));
-	conf.filter = static_cast<BME69XFilter>(BME69X_GET_BITS(data_array[4],
-			BME69X_FILTER));
 	if (BME69X_GET_BITS(data_array[0], BME69X_ODR3)) {
 		conf.standby = BME69X_SB_NONE;
 	} else {
@@ -572,7 +572,7 @@ void BME69x::getConfiguration(BME69xConfig &conf) const {
 	}
 }
 
-void BME69x::setHeaterConfiguration(unsigned char mode,
+void BME69x::setHeaterConfiguration(BME69XMode mode,
 		const BME69xHeaterConfig &conf) const {
 	//int8_t rslt;
 	uint8_t nb_conv = 0;
@@ -711,9 +711,8 @@ void BME69x::readFieldData(unsigned char index, BME69xData &data) const {
 			BME69X_REG_IDAC_HEAT0 + data.meta.gasIndex);
 			data.meta.gasWait = SMBus::readByte(
 			BME69X_REG_GAS_WAIT0 + data.meta.gasIndex);
-			data.temperature = calcTemperature(adc_temp,
-					data.meta.tCoefficient);
-			data.pressure = calcPressure(adc_pres, data.meta.tCoefficient);
+			data.temperature = calcTemperature(adc_temp, data.meta.tCoeff);
+			data.pressure = calcPressure(adc_pres, data.meta.tCoeff);
 			data.humidity = calcHumidity(adc_hum, data.temperature);
 			data.gas = calcGasResistance(adc_gas_res, gas_range);
 			break;
@@ -774,9 +773,8 @@ void BME69x::readAllFieldData(BME69xData *(&data)[3]) const {
 		 * Fixed point calculation needs t_lin for pressure calculation
 		 * t_lin is calculated during temperature calculation
 		 */
-		data[i]->temperature = calcTemperature(adc_temp,
-				data[i]->meta.tCoefficient);
-		data[i]->pressure = calcPressure(adc_pres, data[i]->meta.tCoefficient);
+		data[i]->temperature = calcTemperature(adc_temp, data[i]->meta.tCoeff);
+		data[i]->pressure = calcPressure(adc_pres, data[i]->meta.tCoeff);
 		data[i]->humidity = calcHumidity(adc_hum, data[i]->temperature);
 		data[i]->gas = calcGasResistance(adc_gas_res, gas_range);
 	}

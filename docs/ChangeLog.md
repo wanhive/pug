@@ -9,14 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Ultrasonic sensor driver for the commonly used sensors with UART-auto output.
-- BME690 gas sensor driver.
-- Basic data logger implementation.
+- Ultrasonic sensor driver.
+- BME69x gas sensor driver.
+- Sensor data logger.
 - Finer break condition control of a terminal device.
 
 ### Changed
 
-- BME68x environment sensor driver data structures and APIs.
+- BME68x gas sensor driver data structures and APIs.
 
 ## [0.11.0] - 2025-07-05
 

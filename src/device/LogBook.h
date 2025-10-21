@@ -1,5 +1,5 @@
 /*
- * DataLogger.h
+ * LogBook.h
  *
  * Copyright (C) 2025 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -20,42 +20,42 @@
  *
  */
 
-#ifndef WH_DEVICE_DATALOGGER_H_
-#define WH_DEVICE_DATALOGGER_H_
+#ifndef WH_DEVICE_LOGBOOK_H_
+#define WH_DEVICE_LOGBOOK_H_
 #include <wanhive/base/unix/File.h>
 
 namespace wanhive {
 /**
- * Basic data logger.
+ * Record of sensor data.
  */
-class DataLogger: protected File {
+class LogBook: protected File {
 public:
 	/**
-	 * Constructor: initializes the data logger.
-	 * @param path log file's absolute pathname
+	 * Constructor: initializes the record.
+	 * @param path file's absolute pathname
 	 */
-	DataLogger(const char *path);
+	LogBook(const char *path);
 	/**
-	 * Constructor: initializes the data logger.
-	 * @param fd log file's descriptor
+	 * Constructor: initializes the record.
+	 * @param fd file's descriptor
 	 */
-	DataLogger(int fd);
+	LogBook(int fd);
 	/**
-	 * Destructor: closes the log file.
+	 * Destructor: closes the record.
 	 */
-	~DataLogger();
+	~LogBook();
 	/**
-	 * Writes data to the log file.
-	 * @param format format string, subsequent arguments are converted
+	 * Adds new information to the record.
+	 * @param format the format string, subsequent arguments are converted
 	 * for output (just like printf)
 	 */
-	void insert(const char *format, ...);
+	void enter(const char *format, ...);
 	/**
-	 * Removes all data from the log file.
+	 * Removes all data from the record.
 	 */
 	void clear();
 };
 
 } /* namespace wanhive */
 
-#endif /* WH_DEVICE_DATALOGGER_H_ */
+#endif /* WH_DEVICE_LOGBOOK_H_ */

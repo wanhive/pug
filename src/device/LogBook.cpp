@@ -1,5 +1,5 @@
 /*
- * DataLogger.cpp
+ * LogBook.cpp
  *
  * Copyright (C) 2025 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -20,29 +20,28 @@
  *
  */
 
-#include "DataLogger.h"
+#include "LogBook.h"
 #include <wanhive/base/Storage.h>
 #include <wanhive/base/unix/SystemException.h>
 #include <cstdarg>
 
 namespace wanhive {
 
-DataLogger::DataLogger(const char *path) :
+LogBook::LogBook(const char *path) :
 		File { path, (O_WRONLY | O_CREAT | O_APPEND), (S_IRWXU | S_IRGRP
 				| S_IROTH) } {
-
 }
 
-DataLogger::DataLogger(int fd) :
+LogBook::LogBook(int fd) :
 		File { fd } {
 
 }
 
-DataLogger::~DataLogger() {
+LogBook::~LogBook() {
 
 }
 
-void DataLogger::insert(const char *format, ...) {
+void LogBook::enter(const char *format, ...) {
 	va_list ap;
 	va_start(ap, format);
 	auto status = vdprintf(File::get(), format, ap);
@@ -53,7 +52,7 @@ void DataLogger::insert(const char *format, ...) {
 	}
 }
 
-void DataLogger::clear() {
+void LogBook::clear() {
 	Storage::truncate(File::get(), 0);
 	Storage::seek(File::get(), 0, SEEK_SET);
 }

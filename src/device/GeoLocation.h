@@ -1,7 +1,7 @@
 /*
- * UART.h
+ * GeoLocation.h
  *
- * Copyright (C) 2023 Amit Kumar (amitkriit@gmail.com)
+ * Copyright (C) 2020 Wanhive Systems Private Limited (info@wanhive.com)
  *
  * SPDX License Identifier: GPL-3.0-or-later
  *
@@ -20,31 +20,32 @@
  *
  */
 
-#ifndef WH_PHYSICAL_UART_H_
-#define WH_PHYSICAL_UART_H_
-#include "Terminal.h"
-#include "UARTConfig.h"
+#ifndef WH_DEVICE_GEOLOCATION_H_
+#define WH_DEVICE_GEOLOCATION_H_
 
 namespace wanhive {
 /**
- * UART (universal asynchronous receiver-transmitter) driver.
+ * Geo-location data structure.
  */
-class UART: protected Terminal {
-public:
-	/**
-	 * Constructor: opens an UART device.
-	 * @param path device's pathname
-	 * @param cfg device's configuration data
-	 */
-	UART(const char *path, const UARTConfig &cfg);
-	/**
-	 * Destructor: restores the device's configuration.
-	 */
-	~UART();
-private:
-	void configure(const UARTConfig &cfg) const;
+struct GeoLocation {
+	/*! Satellite lock mode: [2D (2); 3D (3)] */
+	unsigned int mode;
+	/*! Unix time stamp */
+	double timestamp;
+	/*! Latitude in degrees */
+	double latitude;
+	/*! Longitude in degrees */
+	double longitude;
+	/*! Altitude over mean sea level (meter) */
+	double altitude;
+	/*! Speed (meter/second) */
+	double speed;
+	/*! Heading relative to true North */
+	double heading;
+	/*! Vertical speed (meter/second) */
+	double climb;
 };
 
-} /* namespace wanhive */
+}  // namespace wanhive
 
-#endif /* WH_PHYSICAL_UART_H_ */
+#endif /* WH_DEVICE_GEOLOCATION_H_ */

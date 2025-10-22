@@ -3,7 +3,7 @@
 ## src/physical
 WH_PHY_HDRS = physical/GPIO.h physical/I2C.h physical/LineConfig.h \
 	physical/SMBus.h physical/SPI.h physical/Terminal.h \
-	physical/TerminalConfig.h physical/UART.h
+	physical/TerminalConfig.h physical/UART.h physical/UARTConfig.h
 WH_PHY_SRCS = physical/GPIO.cpp physical/I2C.cpp physical/SMBus.cpp \
 	physical/SPI.cpp physical/Terminal.cpp physical/TerminalConfig.cpp \
 	physical/UART.cpp
@@ -17,9 +17,9 @@ WH_DRIV_SRCS = driver/ADS111x.cpp driver/BME280.cpp driver/BME68x.cpp \
 	driver/MLX90640.cpp driver/PCA9685.cpp
 
 ## src/device
-WH_DEVICE_HDRS = device/Gimbal.h device/GPS.h device/Image.h device/Jpeg.h \
-	device/LogBook.h device/PWM.h device/ServoControl.h device/UltraSonic.h \
-	device/ViewFinder.h
+WH_DEVICE_HDRS = device/GeoLocation.h device/Gimbal.h device/GPS.h \
+	device/Image.h device/Jpeg.h device/LogBook.h device/PWM.h \
+	device/ServoControl.h device/UltraSonic.h device/ViewFinder.h
 WH_DEVICE_SRCS = device/Gimbal.cpp device/GPS.cpp device/Jpeg.cpp \
 	device/LogBook.cpp device/PWM.cpp device/ServoControl.cpp \
 	device/UltraSonic.cpp device/ViewFinder.cpp

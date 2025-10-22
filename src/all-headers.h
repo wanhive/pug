@@ -23,6 +23,7 @@
 #ifndef WH_PUG_ALL_HEADERS_H_
 #define WH_PUG_ALL_HEADERS_H_
 
+#include "device/GeoLocation.h"
 #include "device/Gimbal.h"
 #include "device/GPS.h"
 #include "device/Image.h"
@@ -49,5 +50,6 @@
 #include "physical/Terminal.h"
 #include "physical/TerminalConfig.h"
 #include "physical/UART.h"
+#include "physical/UARTConfig.h"
 
 #endif /* WH_PUG_ALL_HEADERS_H_ */

@@ -22,31 +22,10 @@
 
 #ifndef WH_DEVICE_GPS_H_
 #define WH_DEVICE_GPS_H_
+#include "GeoLocation.h"
 #include <gps.h>
 
 namespace wanhive {
-/**
- * Geolocation data.
- */
-struct GeoLocation {
-	/*! Satellite lock mode: [2D (2); 3D (3)] */
-	unsigned int mode;
-	/*! Unix timestamp */
-	double timestamp;
-	/*! Latitude in degrees */
-	double latitude;
-	/*! Longitude in degrees */
-	double longitude;
-	/*! Altitude over mean sea level (meter) */
-	double altitude;
-	/*! Speed (meter/second) */
-	double speed;
-	/*! Heading relative to true North */
-	double heading;
-	/*! Vertical speed (meter/second) */
-	double climb;
-};
-
 /**
  * GPS service daemon connection options.
  */

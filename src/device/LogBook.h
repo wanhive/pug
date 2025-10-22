@@ -23,6 +23,7 @@
 #ifndef WH_DEVICE_LOGBOOK_H_
 #define WH_DEVICE_LOGBOOK_H_
 #include <wanhive/base/unix/File.h>
+#include <cstdarg>
 
 namespace wanhive {
 /**
@@ -49,11 +50,17 @@ public:
 	 * @param format the format string, subsequent arguments are converted
 	 * for output (just like printf)
 	 */
-	void enter(const char *format, ...);
+	void enter(const char *format, ...) const;
+	/**
+	 * Adds new information to the record.
+	 * @param format the format string
+	 * @param ap arguments for output
+	 */
+	void enter(const char *format, va_list ap) const;
 	/**
 	 * Removes all data from the record.
 	 */
-	void clear();
+	void clear() const;
 };
 
 } /* namespace wanhive */

@@ -23,7 +23,6 @@
 #include "LogBook.h"
 #include <wanhive/base/Storage.h>
 #include <wanhive/base/unix/SystemException.h>
-#include <cstdarg>
 
 namespace wanhive {
 
@@ -41,18 +40,26 @@ LogBook::~LogBook() {
 
 }
 
-void LogBook::enter(const char *format, ...) {
+void LogBook::enter(const char *format, ...) const {
 	va_list ap;
 	va_start(ap, format);
-	auto status = vdprintf(File::get(), format, ap);
-	va_end(ap);
+	try {
+		enter(format, ap);
+		va_end(ap);
+	} catch (const BaseException &e) {
+		va_end(ap);
+		throw;
+	}
+}
 
+void LogBook::enter(const char *format, va_list ap) const {
+	auto status = vdprintf(File::get(), format, ap);
 	if (status < 0) {
 		throw SystemException();
 	}
 }
 
-void LogBook::clear() {
+void LogBook::clear() const {
 	Storage::truncate(File::get(), 0);
 	Storage::seek(File::get(), 0, SEEK_SET);
 }

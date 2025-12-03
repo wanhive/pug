@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Changed
 
-- **LogBook** API improvements.
-- Header files reorganization to separate the reusable declarations.
+- **LogBook** interface improvements.
+- Split up the header files for cleaner code.
 
 ## [0.12.0] - 2025-10-21
 

@@ -4,7 +4,7 @@
 AC_PREREQ([2.71])
 AC_INIT([wanhive-pug], [0.13.0], [info@wanhive.com], , [www.wanhive.com])
 AC_CONFIG_AUX_DIR([config])
-AM_INIT_AUTOMAKE([foreign subdir-objects])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
 AC_CONFIG_SRCDIR([src/wanhive-pug.h])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_MACRO_DIRS([m4])
@@ -21,6 +21,7 @@ AC_PROG_CXX([g++])
 AC_PROG_CC([gcc])
 ## https://www.gnu.org/software/autoconf-archive/ax_cxx_compile_stdcxx.html
 AX_CXX_COMPILE_STDCXX(17, [noext], [mandatory])
+AM_PROG_AR
 
 # Checks for libraries.
 LT_INIT
@@ -52,5 +53,5 @@ AC_TYPE_UINT8_T
 AC_FUNC_MMAP
 AC_CHECK_FUNCS([memset munmap pow select sqrt])
 
-AC_CONFIG_FILES([Makefile docs/Makefile src/Makefile src/wanhivepug.pc])
+AC_CONFIG_FILES([Makefile docs/Makefile src/Makefile src/wanhive-pug.pc])
 AC_OUTPUT

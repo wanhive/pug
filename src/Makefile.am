@@ -25,27 +25,26 @@ WH_DEVICE_SRCS = device/Gimbal.cpp device/GPS.cpp device/Jpeg.cpp \
 	device/UltraSonic.cpp device/ViewFinder.cpp
 
 ## src/
-WH_PUG_TOP_HDRS = wanhive-pug.h
+WH_PUG_HDRS = wanhive-pug.h
 
 # --- SOURCE FILES DECLARATIONS END ---
 
-lib_LTLIBRARIES = libwanhivepug.la
-libwanhivepug_la_CXXFLAGS = -Wall @WHUB_CFLAGS@ @LIBCAM_CFLAGS@
+AM_CXXFLAGS = -Wall -Werror
+
+lib_LTLIBRARIES = libwanhive-pug.la
+libwanhive_pug_la_CXXFLAGS = $(AM_CXXFLAGS) @WHUB_CFLAGS@ @LIBCAM_CFLAGS@
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-libwanhivepug_la_LDFLAGS = -version-info @WH_LIB_VERSION@
-libwanhivepug_la_SOURCES = $(WH_PUG_TOP_HDRS) $(WH_PHY_HDRS) $(WH_DRIV_HDRS) \
+libwanhive_pug_la_LDFLAGS = -version-info @WH_LIB_VERSION@
+libwanhive_pug_la_SOURCES = $(WH_PUG_HDRS) $(WH_PHY_HDRS) $(WH_DRIV_HDRS) \
 	$(WH_DEVICE_HDRS) $(WH_PHY_SRCS) $(WH_DRIV_SRCS) $(WH_DEVICE_SRCS)
-libwanhivepug_la_LIBADD = @WHUB_LIBS@ @LIBCAM_LIBS@
+libwanhive_pug_la_LIBADD = @WHUB_LIBS@ @LIBCAM_LIBS@
 
-# --- Library headers for installation ---
-wanhivepugtopdir=$(includedir)/wanhive
-wanhivepugtop_HEADERS=$(WH_PUG_TOP_HDRS)
+# --- Library headers ---
+# https://www.gnu.org/software/automake/manual/html_node/Uniform.html
+# https://www.gnu.org/software/automake/manual/html_node/Headers.html
+pugincludedir = $(includedir)/wanhive
+nobase_puginclude_HEADERS = $(WH_PUG_HDRS) $(WH_PHY_HDRS) $(WH_DRIV_HDRS) \
+	$(WH_DEVICE_HDRS)
 
-wanhivepugphydir=$(includedir)/wanhive/physical
-wanhivepugphy_HEADERS=$(WH_PHY_HDRS)
-wanhivepugdrivdir=$(includedir)/wanhive/driver
-wanhivepugdriv_HEADERS=$(WH_DRIV_HDRS)
-wanhivepugdevicedir=$(includedir)/wanhive/device
-wanhivepugdevice_HEADERS=$(WH_DEVICE_HDRS)
-
-pkgconfig_DATA = wanhivepug.pc
+# --- pkg-config metadata file ---
+pkgconfig_DATA = wanhive-pug.pc

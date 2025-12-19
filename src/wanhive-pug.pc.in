@@ -10,5 +10,5 @@ URL: @PACKAGE_URL@
 Version: @VERSION@
 Requires.private: wanhive >= 16.0.0 libcamera >= 0.2.0
 Cflags: -I${includedir} @WHUB_CFLAGS@ @LIBCAM_CFLAGS@
-Libs: -L${libdir} -lwanhivepug
+Libs: -L${libdir} -lwanhive-pug
 Libs.private: -lm -ljpeg -li2c -lgps

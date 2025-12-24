@@ -151,7 +151,7 @@ struct BME68xHeaterConfig {
 		/*! Length of the heating profile */
 		unsigned char length;
 		/*! Heating duration for parallel mode in milliseconds */
-		unsigned short sharedDuration;
+		unsigned short wait;
 	} profile;
 };
 
@@ -164,17 +164,17 @@ struct BME68xData {
 		/*! Contains new_data, gasm_valid & heat_stab */
 		unsigned char status;
 		/*! The index of the heater profile used */
-		unsigned char gasIndex;
+		unsigned char step;
 		/*! Measurement index to track order */
-		unsigned char measurementIndex;
+		unsigned char index;
 		/*! Heater resistance */
-		unsigned char heaterResistance;
+		unsigned char resistance;
 		/*! Current DAC */
 		unsigned char idac;
 		/*! Gas wait period */
-		unsigned char gasWait;
+		unsigned char period;
 		/*! Intermediate temperature coefficient */
-		int tCoeff;
+		int tco;
 	} meta;
 
 	/*! Temperature in degree celsius x100 */
@@ -219,35 +219,50 @@ public:
 	 */
 	void reset() const;
 	/**
-	 * Reads configuration data (over-sampling and filter) from the sensor.
-	 * @param config stores the configuration data
+	 * Reads sensor's current operation mode.
+	 * @return operation mode
 	 */
-	void getConfiguration(BME68xConfig &config) const;
+	BME68XMode getOperationMode() const;
+	/**
+	 * Sets sensor's operation mode.
+	 * @param mode desired operation mode
+	 */
+	void setOperationMode(BME68XMode mode) const;
+	/**
+	 * Reads configuration data (over-sampling and filter) from the sensor.
+	 * @param conf stores the configuration data
+	 */
+	void getConfiguration(BME68xConfig &conf) const;
 	/**
 	 * Writes new configuration data (over-sampling and filter) to the sensor.
-	 * @param config new configuration data
+	 * @param conf new configuration data
 	 */
-	void setConfiguration(const BME68xConfig &config) const;
+	void setConfiguration(const BME68xConfig &conf) const;
 	/**
 	 * Reads the sensor's gas-heater settings.
-	 * @param config stores the configuration data
+	 * @param conf stores the configuration data
 	 */
-	void getHeaterConfiguration(BME68xHeaterConfig &config) const;
+	void getHeaterConfiguration(BME68xHeaterConfig &conf) const;
 	/**
 	 * Writes gas heater settings to the sensor.
-	 * @param opMode desired operation mode
-	 * @param config new configuration data
+	 * @param mode desired operation mode
+	 * @param conf new configuration data
 	 */
-	void setHeaterConfiguration(BME68XMode opMode,
-			const BME68xHeaterConfig &config) const;
+	void setHeaterConfiguration(BME68XMode mode,
+			const BME68xHeaterConfig &conf) const;
 	/**
 	 * Returns the remaining duration that can be used for heating.
-	 * @param opMode desired operation mode
+	 * @param mode desired operation mode
 	 * @param conf sensor's configuration data
 	 * @return duration in microseconds
 	 */
-	unsigned int getMeasurementDuration(BME68XMode opMode,
+	unsigned int getMeasurementDuration(BME68XMode mode,
 			const BME68xConfig &conf) const noexcept;
+	/**
+	 * Sets the ambient temperature for defining the heater temperature.
+	 * @param temperature ambient temperature
+	 */
+	void setAmbientTemperature(char temperature) noexcept;
 	/**
 	 * Returns sensor data in the forced mode.
 	 * @param data stores the sensor data
@@ -260,21 +275,6 @@ public:
 	 * @return number of available data instances.
 	 */
 	unsigned int getData(BME68xData (&data)[3]) const;
-	/**
-	 * Reads sensor's current operation mode.
-	 * @return operation mode
-	 */
-	BME68XMode getOperationMode() const;
-	/**
-	 * Sets sensor's operation mode.
-	 * @param mode desired operation mode
-	 */
-	void setOperationMode(BME68XMode mode) const;
-	/**
-	 * Sets the ambient temperature for defining the heater temperature.
-	 * @param temperature ambient temperature
-	 */
-	void setAmbientTemperature(char temperature) noexcept;
 private:
 	void calibrate();
 	void configureHeater(const BME68xHeaterConfig &config, unsigned char opMode,
@@ -310,9 +310,9 @@ public:
 	static constexpr unsigned char I2C_ADDR_HIGH = (0x77);
 private:
 	struct {
-		unsigned char chipId;
-		unsigned char variantId;
-		char ambientTemperature;
+		unsigned char chip;
+		unsigned char variant;
+		char baseline;
 	} dev;
 
 	struct {

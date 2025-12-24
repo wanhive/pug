@@ -441,11 +441,11 @@ BME69x::~BME69x() {
 
 void BME69x::setup() {
 	reset();
-	dev.chipId = SMBus::readByte(BME69X_REG_CHIP_ID);
-	if (dev.chipId == CHIP_ID) {
+	dev.chip = SMBus::readByte(BME69X_REG_CHIP_ID);
+	if (dev.chip == CHIP_ID) {
 		/* Read Variant ID */
-		dev.variantId = SMBus::readByte(BME69X_REG_VARIANT_ID);
-		dev.ambientTemperature = 25;
+		dev.variant = SMBus::readByte(BME69X_REG_VARIANT_ID);
+		dev.baseline = 25;
 		/* Get the Calibration data */
 		calibrate();
 	} else {
@@ -461,6 +461,11 @@ void BME69x::reset() const {
 	SMBus::write(reg_addr, soft_rst_cmd);
 	/* Wait for 5ms */
 	Timer::sleep(BME69X_PERIOD_RESET / 1000);
+}
+
+BME69XMode BME69x::getOperationMode() const {
+	auto mode = SMBus::readByte(BME69X_REG_CTRL_MEAS);
+	return static_cast<BME69XMode>(mode & BME69X_MODE_MSK);
 }
 
 void BME69x::setOperationMode(BME69XMode mode) const {
@@ -488,31 +493,26 @@ void BME69x::setOperationMode(BME69XMode mode) const {
 	}
 }
 
-BME69XMode BME69x::getOperationMode() const {
-	auto mode = SMBus::readByte(BME69X_REG_CTRL_MEAS);
-	return static_cast<BME69XMode>(mode & BME69X_MODE_MSK);
-}
+void BME69x::getConfiguration(BME69xConfig &conf) const {
+	/* starting address of the register array for burst read*/
+	uint8_t reg_addr = BME69X_REG_CTRL_GAS_1;
+	uint8_t data_array[BME69X_LEN_CONFIG];
 
-unsigned int BME69x::getMeasurementDuration(BME69XMode mode,
-		const BME69xConfig &conf) const noexcept {
-	uint32_t meas_dur = 0; /* Calculate in us */
-	uint32_t meas_cycles;
-	uint8_t os_to_meas_cycles[6] = { 0, 1, 2, 4, 8, 16 };
-
-	meas_cycles = os_to_meas_cycles[conf.osr.temperature];
-	meas_cycles += os_to_meas_cycles[conf.osr.pressure];
-	meas_cycles += os_to_meas_cycles[conf.osr.humidity];
-
-	/* TPH measurement duration */
-	meas_dur = meas_cycles * UINT32_C(1963);
-	meas_dur += UINT32_C(477 * 4); /* TPH switching duration */
-	meas_dur += UINT32_C(477 * 5); /* Gas measurement duration */
-
-	if (mode != BME69X_MODE_PARALLEL) {
-		meas_dur += UINT32_C(1000); /* Wake up duration of 1ms */
+	SMBus::read(reg_addr, BME69X_LEN_CONFIG, data_array);
+	conf.osr.humidity = static_cast<BME69XOverSampling>(BME69X_GET_BITS_POS_0(
+			data_array[1], BME69X_OSH));
+	conf.filter = static_cast<BME69XFilter>(BME69X_GET_BITS(data_array[4],
+			BME69X_FILTER));
+	conf.osr.temperature = static_cast<BME69XOverSampling>(BME69X_GET_BITS(
+			data_array[3], BME69X_OST));
+	conf.osr.pressure = static_cast<BME69XOverSampling>(BME69X_GET_BITS(
+			data_array[3], BME69X_OSP));
+	if (BME69X_GET_BITS(data_array[0], BME69X_ODR3)) {
+		conf.standby = BME69X_SB_NONE;
+	} else {
+		conf.standby = static_cast<BME69XStandBy>(BME69X_GET_BITS(data_array[4],
+				BME69X_ODR20));
 	}
-
-	return meas_dur;
 }
 
 void BME69x::setConfiguration(const BME69xConfig &conf) const {
@@ -550,35 +550,36 @@ void BME69x::setConfiguration(const BME69xConfig &conf) const {
 	}
 }
 
-void BME69x::getConfiguration(BME69xConfig &conf) const {
-	/* starting address of the register array for burst read*/
-	uint8_t reg_addr = BME69X_REG_CTRL_GAS_1;
-	uint8_t data_array[BME69X_LEN_CONFIG];
+void BME69x::getHeaterConfiguration(BME69xHeaterConfig &conf) const {
+	uint8_t data_array[10] { };
+	uint8_t i;
 
-	SMBus::read(reg_addr, BME69X_LEN_CONFIG, data_array);
-	conf.osr.humidity = static_cast<BME69XOverSampling>(BME69X_GET_BITS_POS_0(
-			data_array[1], BME69X_OSH));
-	conf.filter = static_cast<BME69XFilter>(BME69X_GET_BITS(data_array[4],
-			BME69X_FILTER));
-	conf.osr.temperature = static_cast<BME69XOverSampling>(BME69X_GET_BITS(
-			data_array[3], BME69X_OST));
-	conf.osr.pressure = static_cast<BME69XOverSampling>(BME69X_GET_BITS(
-			data_array[3], BME69X_OSP));
-	if (BME69X_GET_BITS(data_array[0], BME69X_ODR3)) {
-		conf.standby = BME69X_SB_NONE;
+	if ((conf.profile.duration != nullptr)
+			&& (conf.profile.temperature != nullptr)
+			&& (conf.profile.length <= 10)) {
+		/* FIXME: Add conversion to deg C and ms and add the other parameters */
+		SMBus::read(BME69X_REG_RES_HEAT0, 10, data_array);
+
+		for (i = 0; i < conf.profile.length; i++) {
+			conf.profile.temperature[i] = data_array[i];
+		}
+
+		SMBus::read(BME69X_REG_GAS_WAIT0, 10, data_array);
+
+		for (i = 0; i < conf.profile.length; i++) {
+			conf.profile.duration[i] = data_array[i];
+		}
 	} else {
-		conf.standby = static_cast<BME69XStandBy>(BME69X_GET_BITS(data_array[4],
-				BME69X_ODR20));
+		throw Exception(EX_ARGUMENT);
 	}
 }
 
 void BME69x::setHeaterConfiguration(BME69XMode mode,
 		const BME69xHeaterConfig &conf) const {
-	//int8_t rslt;
 	uint8_t nb_conv = 0;
 	uint8_t hctrl, run_gas = 0;
 	uint8_t ctrl_gas_data[2];
-	uint8_t ctrl_gas_addr[2] = { BME69X_REG_CTRL_GAS_0, BME69X_REG_CTRL_GAS_1 };
+	uint8_t ctrl_gas_addr[2] { BME69X_REG_CTRL_GAS_0, BME69X_REG_CTRL_GAS_1 };
 
 	setOperationMode(BME69X_MODE_SLEEP);
 	configureHeater(conf, mode, nb_conv);
@@ -602,32 +603,30 @@ void BME69x::setHeaterConfiguration(BME69XMode mode,
 	writeRegisters(ctrl_gas_addr, ctrl_gas_data, 2);
 }
 
-void BME69x::getHeaterConfiguration(BME69xHeaterConfig &conf) const {
-	//int8_t rslt = BME69X_OK;
-	uint8_t data_array[10] = { 0 };
-	uint8_t i;
+unsigned int BME69x::getMeasurementDuration(BME69XMode mode,
+		const BME69xConfig &conf) const noexcept {
+	uint32_t meas_dur = 0; /* Calculate in us */
+	uint32_t meas_cycles;
+	uint8_t os_to_meas_cycles[6] = { 0, 1, 2, 4, 8, 16 };
 
-	if ((conf.profile.duration != nullptr)
-			&& (conf.profile.temperature != nullptr)
-			&& (conf.profile.length <= 10)) {
-		/* FIXME: Add conversion to deg C and ms and add the other parameters */
-		SMBus::read(BME69X_REG_RES_HEAT0, 10, data_array);
-		for (i = 0; i < conf.profile.length; i++) {
-			conf.profile.temperature[i] = data_array[i];
-		}
+	meas_cycles = os_to_meas_cycles[conf.osr.temperature];
+	meas_cycles += os_to_meas_cycles[conf.osr.pressure];
+	meas_cycles += os_to_meas_cycles[conf.osr.humidity];
 
-		SMBus::read(BME69X_REG_GAS_WAIT0, 10, data_array);
+	/* TPH measurement duration */
+	meas_dur = meas_cycles * UINT32_C(1963);
+	meas_dur += UINT32_C(477 * 4); /* TPH switching duration */
+	meas_dur += UINT32_C(477 * 5); /* Gas measurement duration */
 
-		for (i = 0; i < conf.profile.length; i++) {
-			conf.profile.duration[i] = data_array[i];
-		}
-	} else {
-		throw Exception(EX_ARGUMENT);
+	if (mode != BME69X_MODE_PARALLEL) {
+		meas_dur += UINT32_C(1000); /* Wake up duration of 1ms */
 	}
+
+	return meas_dur;
 }
 
 void BME69x::setAmbientTemperature(char temperature) noexcept {
-	dev.ambientTemperature = temperature;
+	dev.baseline = temperature;
 }
 
 bool BME69x::getData(BME69xData &data) const {
@@ -641,8 +640,8 @@ bool BME69x::getData(BME69xData &data) const {
 
 unsigned int BME69x::getData(BME69xData (&data)[3]) const {
 	uint8_t i = 0, j = 0, new_fields = 0;
-	BME69xData *field_ptr[3] = { };
-	BME69xData field_data[3] = { };
+	BME69xData *field_ptr[3] { };
+	BME69xData field_data[3] { };
 
 	field_ptr[0] = &field_data[0];
 	field_ptr[1] = &field_data[1];
@@ -674,8 +673,7 @@ unsigned int BME69x::getData(BME69xData (&data)[3]) const {
 }
 
 void BME69x::readFieldData(unsigned char index, BME69xData &data) const {
-	//int8_t rslt = BME69X_OK;
-	uint8_t buff[BME69X_LEN_FIELD] = { 0 };
+	uint8_t buff[BME69X_LEN_FIELD] { };
 	uint8_t gas_range;
 	uint32_t adc_temp;
 	uint32_t adc_pres;
@@ -684,12 +682,12 @@ void BME69x::readFieldData(unsigned char index, BME69xData &data) const {
 	uint8_t tries = 5;
 
 	while ((tries)) {
-		SMBus::read(((BME69X_REG_FIELD0 + (index * BME69X_LEN_FIELD_OFFSET))),
+		SMBus::read((BME69X_REG_FIELD0 + (index * BME69X_LEN_FIELD_OFFSET)),
 		BME69X_LEN_FIELD, buff);
 
 		data.meta.status = buff[0] & BME69X_NEW_DATA_MSK;
-		data.meta.gasIndex = buff[0] & BME69X_GAS_INDEX_MSK;
-		data.meta.measurementIndex = buff[1];
+		data.meta.step = buff[0] & BME69X_GAS_INDEX_MSK;
+		data.meta.index = buff[1];
 
 		/* read the raw data from the sensor */
 		adc_pres = (uint32_t) (((uint32_t) buff[2] << 16)
@@ -705,33 +703,37 @@ void BME69x::readFieldData(unsigned char index, BME69xData &data) const {
 		data.meta.status |= buff[16] & BME69X_HEAT_STAB_MSK;
 
 		if ((data.meta.status & BME69X_NEW_DATA_MSK)) {
-			data.meta.heaterResistance = SMBus::readByte(
-			BME69X_REG_RES_HEAT0 + data.meta.gasIndex);
+			data.meta.resistance = SMBus::readByte(
+			BME69X_REG_RES_HEAT0 + data.meta.step);
 			data.meta.idac = SMBus::readByte(
-			BME69X_REG_IDAC_HEAT0 + data.meta.gasIndex);
-			data.meta.gasWait = SMBus::readByte(
-			BME69X_REG_GAS_WAIT0 + data.meta.gasIndex);
-			data.temperature = calcTemperature(adc_temp, data.meta.tCoeff);
-			data.pressure = calcPressure(adc_pres, data.meta.tCoeff);
+			BME69X_REG_IDAC_HEAT0 + data.meta.step);
+			data.meta.period = SMBus::readByte(
+			BME69X_REG_GAS_WAIT0 + data.meta.step);
+
+			data.temperature = calcTemperature(adc_temp, data.meta.tco);
+			data.pressure = calcPressure(adc_pres, data.meta.tco);
 			data.humidity = calcHumidity(adc_hum, data.temperature);
 			data.gas = calcGasResistance(adc_gas_res, gas_range);
+
 			break;
+
 		}
 
 		Timer::sleep(BME69X_PERIOD_POLL / 1000);
+
 		tries--;
 	}
 }
 
 void BME69x::readAllFieldData(BME69xData *(&data)[3]) const {
-	uint8_t buff[BME69X_LEN_FIELD * 3] = { 0 };
+	uint8_t buff[BME69X_LEN_FIELD * 3] { };
 	uint8_t gas_range;
 	uint32_t adc_temp;
 	uint32_t adc_pres;
 	uint16_t adc_hum;
 	uint16_t adc_gas_res;
 	uint8_t off;
-	uint8_t set_val[30] = { 0 }; /* idac, res_heat, gas_wait */
+	uint8_t set_val[30] { }; /* idac, res_heat, gas_wait */
 	uint8_t i;
 
 	if (!data[0] && !data[1] && !data[2]) {
@@ -739,18 +741,17 @@ void BME69x::readAllFieldData(BME69xData *(&data)[3]) const {
 	}
 
 	for (unsigned index = 0; index < 3; ++index) {
-		auto offset = BME69X_LEN_FIELD * index;
+		auto offset = (BME69X_LEN_FIELD * index);
 		SMBus::read((BME69X_REG_FIELD0 + offset), BME69X_LEN_FIELD,
 				(buff + offset));
 	}
-
 	SMBus::read(BME69X_REG_IDAC_HEAT0, 30, set_val);
 
-	for (i = 0; (i < 3); i++) {
+	for (i = 0; i < 3; i++) {
 		off = (uint8_t) (i * BME69X_LEN_FIELD);
 		data[i]->meta.status = buff[off] & BME69X_NEW_DATA_MSK;
-		data[i]->meta.gasIndex = buff[off] & BME69X_GAS_INDEX_MSK;
-		data[i]->meta.measurementIndex = buff[off + 1];
+		data[i]->meta.step = buff[off] & BME69X_GAS_INDEX_MSK;
+		data[i]->meta.index = buff[off + 1];
 
 		/* read the raw data from the sensor */
 		adc_pres = (uint32_t) (((uint32_t) buff[off + 2] << 16)
@@ -766,15 +767,16 @@ void BME69x::readAllFieldData(BME69xData *(&data)[3]) const {
 		data[i]->meta.status |= buff[off + 16] & BME69X_GASM_VALID_MSK;
 		data[i]->meta.status |= buff[off + 16] & BME69X_HEAT_STAB_MSK;
 
-		data[i]->meta.idac = set_val[data[i]->meta.gasIndex];
-		data[i]->meta.heaterResistance = set_val[10 + data[i]->meta.gasIndex];
-		data[i]->meta.gasWait = set_val[20 + data[i]->meta.gasIndex];
+		data[i]->meta.idac = set_val[data[i]->meta.step];
+		data[i]->meta.resistance = set_val[10 + data[i]->meta.step];
+		data[i]->meta.period = set_val[20 + data[i]->meta.step];
+
 		/*
 		 * Fixed point calculation needs t_lin for pressure calculation
 		 * t_lin is calculated during temperature calculation
 		 */
-		data[i]->temperature = calcTemperature(adc_temp, data[i]->meta.tCoeff);
-		data[i]->pressure = calcPressure(adc_pres, data[i]->meta.tCoeff);
+		data[i]->temperature = calcTemperature(adc_temp, data[i]->meta.tco);
+		data[i]->pressure = calcPressure(adc_pres, data[i]->meta.tco);
 		data[i]->humidity = calcHumidity(adc_hum, data[i]->temperature);
 		data[i]->gas = calcGasResistance(adc_gas_res, gas_range);
 	}
@@ -785,8 +787,8 @@ void BME69x::sortSensorData(unsigned lowIndex, unsigned highIndex,
 	int16_t meas_index1;
 	int16_t meas_index2;
 
-	meas_index1 = (int16_t) field[lowIndex]->meta.measurementIndex;
-	meas_index2 = (int16_t) field[highIndex]->meta.measurementIndex;
+	meas_index1 = (int16_t) field[lowIndex]->meta.index;
+	meas_index2 = (int16_t) field[highIndex]->meta.index;
 	if ((field[lowIndex]->meta.status & BME69X_NEW_DATA_MSK)
 			&& (field[highIndex]->meta.status & BME69X_NEW_DATA_MSK)) {
 		int16_t diff = meas_index2 - meas_index1;
@@ -909,8 +911,10 @@ unsigned int BME69x::calcGasResistance(unsigned short raw,
 	var2 *= INT32_C(3);
 	var2 = INT32_C(4096) + var2;
 
-	/* multiplying 10000 then dividing then multiplying by 100 instead of
-	 * multiplying by 1000000 to prevent overflow */
+	/*
+	 * multiplying 10000 then dividing then multiplying by 100 instead of
+	 * multiplying by 1000000 to prevent overflow
+	 */
 	calc_gas_res = (UINT32_C(10000) * var1) / (uint32_t) var2;
 	calc_gas_res = calc_gas_res * 100;
 
@@ -961,17 +965,21 @@ void BME69x::calibrate() {
 	/* Humidity related coefficients */
 	calib.hum.par_h5 = (int16_t) (((int16_t) coeff_array[BME69X_IDX_S_H_MSB]
 			<< 4) | (coeff_array[BME69X_IDX_S_H_LSB] >> 4));
+
 	if (calib.hum.par_h5 > 2047) {
 		/* Convert to negative value */
 		calib.hum.par_h5 = (int16_t) (calib.hum.par_h5 - 4096);
 	}
+
 	calib.hum.par_h1 = (int16_t) (((int16_t) coeff_array[BME69X_IDX_O_H_MSB]
 			<< 4) | (coeff_array[BME69X_IDX_O_H_LSB] & 0x0F));
+
 	/* Check if the value is above 2047 */
 	if (calib.hum.par_h1 > 2047) {
 		/* Convert to negative value */
 		calib.hum.par_h1 = (int16_t) (calib.hum.par_h1 - 4096);
 	}
+
 	calib.hum.par_h2 = (int8_t) coeff_array[BME69X_IDX_TK10H_C];
 	calib.hum.par_h4 = (int8_t) coeff_array[BME69X_IDX_par_h4];
 	calib.hum.par_h3 = (uint8_t) coeff_array[BME69X_IDX_par_h3];
@@ -1035,7 +1043,7 @@ void BME69x::configureHeater(const BME69xHeaterConfig &conf, unsigned char mode,
 			throw Exception(EX_ARGUMENT);
 		}
 
-		if (conf.profile.sharedDuration == 0) {
+		if (conf.profile.wait == 0) {
 			throw Exception(EX_ARGUMENT);
 		}
 
@@ -1049,7 +1057,7 @@ void BME69x::configureHeater(const BME69xHeaterConfig &conf, unsigned char mode,
 
 		nbConv = conf.profile.length;
 		write_len = conf.profile.length;
-		shared_dur = calculateHeaterDurationShared(conf.profile.sharedDuration);
+		shared_dur = calculateHeaterDurationShared(conf.profile.wait);
 		SMBus::write(heater_dur_shared_addr, shared_dur);
 		break;
 	default:
@@ -1075,8 +1083,7 @@ unsigned char BME69x::calculateHeaterResistance(
 		temp = 400;
 	}
 
-	var1 = (((int32_t) dev.ambientTemperature * calib.gas.par_g3) / 1000U)
-			* 256; /* par_g1 */
+	var1 = (((int32_t) dev.baseline * calib.gas.par_g3) / 1000U) * 256; /* par_g1 */
 	var2 = (calib.gas.par_g1 + 784)
 			* (((((calib.gas.par_g2 + 154009UL) * temp * 5) / 100) + 3276800ULL)
 					/ 10); /* par_g2,

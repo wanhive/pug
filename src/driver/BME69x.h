@@ -148,7 +148,7 @@ struct BME69xHeaterConfig {
 		/*! Length of the heating profile */
 		unsigned char length;
 		/*! Heating duration for parallel mode in milliseconds */
-		unsigned short sharedDuration;
+		unsigned short wait;
 	} profile;
 };
 
@@ -158,17 +158,17 @@ struct BME69xData {
 		/*! Contains new_data, gasm_valid & heat_stab */
 		unsigned char status;
 		/*! The index of the heater profile used */
-		unsigned char gasIndex;
+		unsigned char step;
 		/*! Measurement index to track order */
-		unsigned char measurementIndex;
+		unsigned char index;
 		/*! Heater resistance */
-		unsigned char heaterResistance;
+		unsigned char resistance;
 		/*! Current DAC */
 		unsigned char idac;
 		/*! Gas wait period */
-		unsigned char gasWait;
-		/*! Intermediate temperature co-efficient for pressure calculation */
-		unsigned int tCoeff;
+		unsigned char period;
+		/*! Intermediate temperature co-efficient */
+		unsigned int tco;
 	} meta;
 
 	/*! Temperature in degree celsius x100 */
@@ -213,33 +213,30 @@ public:
 	 */
 	void reset() const;
 	/**
-	 * Sets sensor's operation mode.
-	 * @param mode desired operation mode
-	 */
-	void setOperationMode(BME69XMode mode) const;
-	/**
 	 * Reads sensor's current operation mode.
 	 * @return operation mode
 	 */
 	BME69XMode getOperationMode() const;
 	/**
-	 * Returns the remaining duration that can be used for heating.
+	 * Sets sensor's operation mode.
 	 * @param mode desired operation mode
-	 * @param conf sensor's configuration data
-	 * @return duration in microseconds
 	 */
-	unsigned int getMeasurementDuration(BME69XMode mode,
-			const BME69xConfig &conf) const noexcept;
+	void setOperationMode(BME69XMode mode) const;
+	/**
+	 * Reads configuration data (over-sampling and filter) from the sensor.
+	 * @param conf stores the configuration data
+	 */
+	void getConfiguration(BME69xConfig &conf) const;
 	/**
 	 * Writes new configuration data (over-sampling and filter) to the sensor.
 	 * @param conf new configuration data
 	 */
 	void setConfiguration(const BME69xConfig &conf) const;
 	/**
-	 * Reads configuration data (over-sampling and filter) from the sensor.
+	 * Reads the sensor's gas-heater settings.
 	 * @param conf stores the configuration data
 	 */
-	void getConfiguration(BME69xConfig &conf) const;
+	void getHeaterConfiguration(BME69xHeaterConfig &conf) const;
 	/**
 	 * Writes gas heater settings to the sensor.
 	 * @param mode desired operation mode
@@ -248,10 +245,13 @@ public:
 	void setHeaterConfiguration(BME69XMode mode,
 			const BME69xHeaterConfig &conf) const;
 	/**
-	 * Reads the sensor's gas-heater settings.
-	 * @param conf stores the configuration data
+	 * Returns the remaining duration that can be used for heating.
+	 * @param mode desired operation mode
+	 * @param conf sensor's configuration data
+	 * @return duration in microseconds
 	 */
-	void getHeaterConfiguration(BME69xHeaterConfig &conf) const;
+	unsigned int getMeasurementDuration(BME69XMode mode,
+			const BME69xConfig &conf) const noexcept;
 	/**
 	 * Sets the ambient temperature for defining the heater temperature.
 	 * @param temperature ambient temperature
@@ -300,9 +300,9 @@ public:
 	static constexpr unsigned char I2C_ADDR_HIGH = (0x77);
 private:
 	struct {
-		unsigned char chipId;
-		unsigned char variantId;
-		char ambientTemperature;
+		unsigned char chip;
+		unsigned char variant;
+		char baseline;
 	} dev;
 
 	struct {

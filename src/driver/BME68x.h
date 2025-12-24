@@ -173,6 +173,8 @@ struct BME68xData {
 		unsigned char idac;
 		/*! Gas wait period */
 		unsigned char gasWait;
+		/*! Intermediate temperature coefficient */
+		int tCoeff;
 	} meta;
 
 	/*! Temperature in degree celsius x100 */
@@ -251,13 +253,13 @@ public:
 	 * @param data stores the sensor data
 	 * @return true if fresh data is available, false otherwise
 	 */
-	bool getData(BME68xData &data);
+	bool getData(BME68xData &data) const;
 	/**
 	 * Returns sensor data in sequential or parallel modes.
 	 * @param data stores the sensor data
 	 * @return number of available data instances.
 	 */
-	unsigned int getData(BME68xData (&data)[3]);
+	unsigned int getData(BME68xData (&data)[3]) const;
 	/**
 	 * Reads sensor's current operation mode.
 	 * @return operation mode
@@ -277,13 +279,13 @@ private:
 	void calibrate();
 	void configureHeater(const BME68xHeaterConfig &config, unsigned char opMode,
 			unsigned char &nConv) const;
-	void readFieldData(unsigned char index, BME68xData &data);
-	void readAllFieldData(BME68xData *(&data)[3]);
+	void readFieldData(unsigned char index, BME68xData &data) const;
+	void readAllFieldData(BME68xData *(&data)[3]) const;
 	void sortSensorData(unsigned lowIndex, unsigned highIndex,
 			BME68xData *field[]) const noexcept;
-	short calculateTemperature(unsigned int raw) noexcept;
-	unsigned int calculatePressure(unsigned int raw) const noexcept;
-	unsigned int calculateHumidity(unsigned int raw) const noexcept;
+	short calculateTemperature(unsigned int raw, int &tCoeff) const noexcept;
+	unsigned int calculatePressure(unsigned int raw, int tCoeff) const noexcept;
+	unsigned int calculateHumidity(unsigned int raw, int tCoeff) const noexcept;
 	unsigned int calculateGasResistanceLow(unsigned short raw,
 			unsigned char range) const noexcept;
 	unsigned int calculateGasResistanceHigh(unsigned short raw,
@@ -351,8 +353,6 @@ private:
 			char res_heat_val;
 			char range_sw_err;
 		} gas;
-
-		int t_fine;
 
 	} calib;
 };

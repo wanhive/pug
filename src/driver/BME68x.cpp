@@ -602,7 +602,7 @@ unsigned int BME68x::getMeasurementDuration(BME68XMode opMode,
 	return meas_dur;
 }
 
-bool BME68x::getData(BME68xData &data) {
+bool BME68x::getData(BME68xData &data) const {
 	readFieldData(0, data);
 	if (data.meta.status & BME68X_NEW_DATA_MSK) {
 		return true;
@@ -611,7 +611,7 @@ bool BME68x::getData(BME68xData &data) {
 	}
 }
 
-unsigned int BME68x::getData(BME68xData (&data)[3]) {
+unsigned int BME68x::getData(BME68xData (&data)[3]) const {
 	unsigned int new_fields = 0;
 	BME68xData *field_ptr[3] = { };
 	BME68xData field_data[3] = { };
@@ -809,7 +809,7 @@ void BME68x::configureHeater(const BME68xHeaterConfig &config,
 	writeRegisters(gw_reg_addr, gw_reg_data, write_len);
 }
 
-void BME68x::readFieldData(unsigned char index, BME68xData &data) {
+void BME68x::readFieldData(unsigned char index, BME68xData &data) const {
 	uint8_t buff[BME68X_LEN_FIELD] = { 0 };
 	uint8_t gas_range_l, gas_range_h;
 	uint32_t adc_temp;
@@ -854,12 +854,12 @@ void BME68x::readFieldData(unsigned char index, BME68xData &data) {
 			data.meta.gasWait = SMBus::readByte(
 			BME68X_REG_GAS_WAIT0 + data.meta.gasIndex);
 
-			data.temperature = calculateTemperature(adc_temp);
-			data.pressure = calculatePressure(adc_pres);
-			data.humidity = calculateHumidity(adc_hum);
+			data.temperature = calculateTemperature(adc_temp, data.meta.tCoeff);
+			data.pressure = calculatePressure(adc_pres, data.meta.tCoeff);
+			data.humidity = calculateHumidity(adc_hum, data.meta.tCoeff);
 			if (dev.variantId == VARIANT_GAS_HIGH) {
-				data.gas = calculateGasResistanceHigh(
-						adc_gas_res_high, gas_range_h);
+				data.gas = calculateGasResistanceHigh(adc_gas_res_high,
+						gas_range_h);
 			} else {
 				data.gas = calculateGasResistanceLow(adc_gas_res_low,
 						gas_range_l);
@@ -873,7 +873,7 @@ void BME68x::readFieldData(unsigned char index, BME68xData &data) {
 	}
 }
 
-void BME68x::readAllFieldData(BME68xData *(&data)[3]) {
+void BME68x::readAllFieldData(BME68xData *(&data)[3]) const {
 	uint8_t buff[BME68X_LEN_FIELD * 3] = { 0 };
 	uint8_t gas_range_l, gas_range_h;
 	uint32_t adc_temp;
@@ -927,12 +927,13 @@ void BME68x::readAllFieldData(BME68xData *(&data)[3]) {
 		data[i]->meta.idac = set_val[data[i]->meta.gasIndex];
 		data[i]->meta.heaterResistance = set_val[10 + data[i]->meta.gasIndex];
 		data[i]->meta.gasWait = set_val[20 + data[i]->meta.gasIndex];
-		data[i]->temperature = calculateTemperature(adc_temp);
-		data[i]->pressure = calculatePressure(adc_pres);
-		data[i]->humidity = calculateHumidity(adc_hum);
+		data[i]->temperature = calculateTemperature(adc_temp,
+				data[i]->meta.tCoeff);
+		data[i]->pressure = calculatePressure(adc_pres, data[i]->meta.tCoeff);
+		data[i]->humidity = calculateHumidity(adc_hum, data[i]->meta.tCoeff);
 		if (dev.variantId == VARIANT_GAS_HIGH) {
-			data[i]->gas = calculateGasResistanceHigh(
-					adc_gas_res_high, gas_range_h);
+			data[i]->gas = calculateGasResistanceHigh(adc_gas_res_high,
+					gas_range_h);
 		} else {
 			data[i]->gas = calculateGasResistanceLow(adc_gas_res_low,
 					gas_range_l);
@@ -959,7 +960,7 @@ void BME68x::sortSensorData(unsigned lowIndex, unsigned highIndex,
 	}
 }
 
-short BME68x::calculateTemperature(unsigned int raw) noexcept {
+short BME68x::calculateTemperature(unsigned int raw, int &tCoeff) const noexcept {
 	int64_t var1;
 	int64_t var2;
 	int64_t var3;
@@ -970,14 +971,15 @@ short BME68x::calculateTemperature(unsigned int raw) noexcept {
 	var2 = (var1 * (int32_t) calib.temp.par_t2) >> 11;
 	var3 = ((var1 >> 1) * (var1 >> 1)) >> 12;
 	var3 = ((var3) * ((int32_t) calib.temp.par_t3 << 4)) >> 14;
-	calib.t_fine = (int32_t) (var2 + var3);
-	calc_temp = (int16_t) (((calib.t_fine * 5) + 128) >> 8);
+	tCoeff = (int32_t) (var2 + var3);
+	calc_temp = (int16_t) (((tCoeff * 5) + 128) >> 8);
 
 	/*lint -restore */
 	return calc_temp;
 }
 
-unsigned int BME68x::calculatePressure(unsigned int raw) const noexcept {
+unsigned int BME68x::calculatePressure(unsigned int raw,
+		int tCoeff) const noexcept {
 	int32_t var1;
 	int32_t var2;
 	int32_t var3;
@@ -991,7 +993,7 @@ unsigned int BME68x::calculatePressure(unsigned int raw) const noexcept {
 	const int32_t pres_ovf_check = INT32_C(0x40000000);
 
 	/*lint -save -e701 -e702 -e713 */
-	var1 = (((int32_t) calib.t_fine) >> 1) - 64000;
+	var1 = (((int32_t) tCoeff) >> 1) - 64000;
 	var2 = ((((var1 >> 2) * (var1 >> 2)) >> 11) * (int32_t) calib.pres.par_p6)
 			>> 2;
 	var2 = var2 + ((var1 * (int32_t) calib.pres.par_p5) << 1);
@@ -1024,7 +1026,8 @@ unsigned int BME68x::calculatePressure(unsigned int raw) const noexcept {
 	return (uint32_t) pressure_comp;
 }
 
-unsigned int BME68x::calculateHumidity(unsigned int raw) const noexcept {
+unsigned int BME68x::calculateHumidity(unsigned int raw,
+		int tCoeff) const noexcept {
 	int32_t var1;
 	int32_t var2;
 	int32_t var3;
@@ -1035,7 +1038,7 @@ unsigned int BME68x::calculateHumidity(unsigned int raw) const noexcept {
 	int32_t calc_hum;
 
 	/*lint -save -e702 -e704 */
-	temp_scaled = (((int32_t) calib.t_fine * 5) + 128) >> 8;
+	temp_scaled = (((int32_t) tCoeff * 5) + 128) >> 8;
 	var1 = (int32_t) (raw - ((int32_t) ((int32_t) calib.hum.par_h1 * 16)))
 			- (((temp_scaled * (int32_t) calib.hum.par_h3) / ((int32_t) 100))
 					>> 1);

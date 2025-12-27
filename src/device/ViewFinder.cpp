@@ -191,7 +191,7 @@ void ViewFinder::configure(unsigned int height, unsigned int width) {
 	if (config->validate() != libcamera::CameraConfiguration::Invalid) {
 		camera->configure(config.get());
 	} else {
-		throw Exception(EX_PARAMETER);
+		throw Exception(EX_ARGUMENT);
 	}
 }
 

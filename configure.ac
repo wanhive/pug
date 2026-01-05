@@ -53,5 +53,14 @@ AC_TYPE_UINT8_T
 AC_FUNC_MMAP
 AC_CHECK_FUNCS([memset munmap pow select sqrt])
 
+# Doxygen configuration file generation
+AC_CHECK_PROG([HAVE_DOXYGEN], [doxygen], [yes], [no])
+AS_IF([test "x$HAVE_DOXYGEN" = "xyes"], [
+		AC_CONFIG_FILES([Doxyfile])
+		AC_CHECK_PROG([HAVE_DOT], [dot], [YES], [NO])
+		AC_SUBST([HAVE_DOT])
+	], [AC_MSG_WARN([Doxygen not found.])])
+AM_CONDITIONAL([WH_HAVE_DOXYGEN], [test "x$HAVE_DOXYGEN" = "xyes"])
+
 AC_CONFIG_FILES([Makefile docs/Makefile src/Makefile src/wanhive-pug.pc])
 AC_OUTPUT

@@ -5,10 +5,10 @@ includedir=@includedir@
 pkgincludedir=@includedir@/wanhive
 
 Name: @PACKAGE@
-Description: Physical computing library
+Description: Wanhive Pug physical computing library
 URL: @PACKAGE_URL@
 Version: @VERSION@
-Requires.private: wanhive >= 16.0.0 libcamera >= 0.2.0
+Requires.private: wanhive >= @WHUB_VERSION@ libcamera >= @LIBCAM_VERSION@
 Cflags: -I${includedir} @WHUB_CFLAGS@ @LIBCAM_CFLAGS@
 Libs: -L${libdir} -lwanhive-pug
 Libs.private: -lm -ljpeg -li2c -lgps

@@ -738,7 +738,7 @@ void BMM350::setup() {
 	/* Variable to store soft-reset command */
 	uint8_t soft_reset;
 
-	dev.chipId = 0;
+	dev.chip = 0;
 
 	/* Assign axis_en with all axis enabled (BMM350_EN_XYZ_MSK) */
 	dev.axes = BMM350_EN_XYZ_MSK;
@@ -755,10 +755,10 @@ void BMM350::setup() {
 	chip_id = readRegByte(BMM350_REG_CHIP_ID);
 
 	/* Assign chip_id to dev->chip_id */
-	dev.chipId = chip_id;
+	dev.chip = chip_id;
 
 	/* Check for chip id validity */
-	if ((dev.chipId == CHIP_ID)) {
+	if ((dev.chip == CHIP_ID)) {
 		/* Download OTP memory */
 		readOTPData();
 
@@ -1211,7 +1211,7 @@ void BMM350::readOTPData() {
 		dev.otp[indx] = readOTPWord(indx);
 	}
 
-	dev.variantId = (dev.otp[30] & 0x7f00) >> 9;
+	dev.variant = (dev.otp[30] & 0x7f00) >> 9;
 
 	/* Update magnetometer offset and sensitivity data. */
 	updateOffsetAndSensitivity();

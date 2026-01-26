@@ -1,5 +1,5 @@
-/*
- * Terminal.h
+/**
+ * @file Terminal.h
  *
  * Copyright (C) 2023 Amit Kumar (amitkriit@gmail.com)
  *
@@ -25,6 +25,7 @@
 #include "TerminalConfig.h"
 #include <wanhive/base/unix/File.h>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Terminal IO

@@ -1,5 +1,5 @@
-/*
- * MLX9064x.h
+/**
+ * @file MLX9064x.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -25,6 +25,7 @@
 #include "../physical/I2C.h"
 #include <cstdint>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Bare bone MLX90640/MLX90641 thermal imaging camera driver.

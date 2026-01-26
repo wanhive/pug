@@ -1,5 +1,5 @@
-/*
- * SPI.h
+/**
+ * @file SPI.h
  *
  * Copyright (C) 2023 Amit Kumar (amitkriit@gmail.com)
  *
@@ -24,6 +24,7 @@
 #define WH_PHYSICAL_SPI_H_
 #include <wanhive/base/unix/File.h>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Possible SPI clocking configurations

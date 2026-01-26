@@ -1,5 +1,5 @@
-/*
- * Gimbal.h
+/**
+ * @file Gimbal.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -25,6 +25,7 @@
 #include "PWM.h"
 #include "ServoControl.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * 3-axis servo gimbal controller.

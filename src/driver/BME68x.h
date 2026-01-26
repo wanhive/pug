@@ -1,5 +1,5 @@
-/*
- * BME68x.h
+/**
+ * @file BME68x.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -61,6 +61,7 @@
 #define WH_DRIVER_BME68X_H_
 #include "../physical/SMBus.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Oversampling settings.

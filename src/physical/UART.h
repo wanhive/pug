@@ -1,5 +1,5 @@
-/*
- * UART.h
+/**
+ * @file UART.h
  *
  * Copyright (C) 2023 Amit Kumar (amitkriit@gmail.com)
  *
@@ -25,6 +25,7 @@
 #include "Terminal.h"
 #include "UARTConfig.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * UART (universal asynchronous receiver-transmitter) driver.

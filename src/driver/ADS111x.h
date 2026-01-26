@@ -1,5 +1,5 @@
-/*
- * ADS111x.h
+/**
+ * @file ADS111x.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -24,6 +24,7 @@
 #define WH_DRIVER_ADS111X_H_
 #include "../physical/SMBus.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * ADS111x configuration data [15:0].
@@ -113,17 +114,11 @@ public:
 	 */
 	static unsigned short encode(const ADS111xConfig &config) noexcept;
 public:
-	/**
-	 * Default I2C address
-	 */
+	/*! Default I2C address */
 	static constexpr unsigned char I2C_ADDR = 0x48;
-	/**
-	 * Default configuration.
-	 */
+	/*! Default configuration */
 	static constexpr unsigned short DEFAULT_CFG = 0x8583;
-	/**
-	 * Commonly used continuous-conversion mode configuration.
-	 */
+	/*! Commonly used continuous-conversion mode configuration */
 	static constexpr unsigned short WINDOW_CFG = 0x429A;
 };
 

@@ -1,5 +1,5 @@
-/*
- * BMM350.h
+/**
+ * @file BMM350.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -61,6 +61,7 @@
 #define WH_DRIVER_BMM350_H_
 #include "../physical/SMBus.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Enable or disable flags
@@ -367,56 +368,35 @@ private:
 	static constexpr unsigned int OTP_DATA_LENGTH = 32;
 	static constexpr unsigned int MAG_TEMP_DATA_LENGTH = 12;
 
-	/*! BMM350 magnetometer compensate structure */
 	struct BMM350Compensate {
-		/*! Structure to store dut offset coefficient */
 		struct {
-			/*! Temperature offset */
 			float t_offs;
-
-			/*! Offset x-axis */
 			float offset_x;
-
-			/*! Offset y-axis */
 			float offset_y;
-
-			/*! Offset z-axis */
 			float offset_z;
 		} dut_offset_coef;
 
-		/*! Structure to store dut sensitivity coefficient */
 		struct {
-			/*! Temperature sensitivity */
 			float t_sens;
-
-			/*! Sensitivity x-axis */
 			float sens_x;
-
-			/*! Sensitivity y-axis */
 			float sens_y;
-
-			/*! Sensitivity z-axis */
 			float sens_z;
 		} dut_sensit_coef;
 
-		/*! Structure to store dut tco */
 		struct {
 			float tco_x;
 			float tco_y;
 			float tco_z;
 		} dut_tco;
 
-		/*! Structure to store dut tcs */
 		struct {
 			float tcs_x;
 			float tcs_y;
 			float tcs_z;
 		} dut_tcs;
 
-		/*! Initialize T0_reading parameter */
 		float dut_t0;
 
-		/*! Structure to define cross axis compensation */
 		struct {
 			float cross_x_y;
 			float cross_y_x;
@@ -426,15 +406,10 @@ private:
 	};
 
 	struct {
-		/*! Chip Id of BMM350 */
-		unsigned char chipId;
-		/*! Variable to store status of axes enabled */
+		unsigned char chip;
+		unsigned char variant;
 		unsigned char axes;
-		/*! Array to store OTP data */
 		unsigned short otp[OTP_DATA_LENGTH];
-		/*! Variant ID */
-		unsigned char variantId;
-		/*! Structure for magnetometer compensate */
 		BMM350Compensate compensate;
 	} dev;
 };

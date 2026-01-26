@@ -1,5 +1,5 @@
-/*
- * LogBook.h
+/**
+ * @file LogBook.h
  *
  * Copyright (C) 2025 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -25,6 +25,7 @@
 #include <wanhive/base/unix/File.h>
 #include <cstdarg>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Record of sensor data.

@@ -1,5 +1,5 @@
-/*
- * ViewFinder.h
+/**
+ * @file ViewFinder.h
  *
  * Copyright (C) 2025 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -29,6 +29,7 @@
 #include <memory>
 #include <vector>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * A bare-minimum USB/MIPI camera driver.

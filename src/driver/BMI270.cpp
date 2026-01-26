@@ -774,7 +774,7 @@ BMI270::~BMI270() {
 }
 
 void BMI270::setup() {
-	if ((dev.chipId = SMBus::readByte(REG_CHIP_ID)) != CHIP_ID) {
+	if ((dev.chip = SMBus::readByte(REG_CHIP_ID)) != CHIP_ID) {
 		throw Exception(EX_OPERATION);
 	}
 

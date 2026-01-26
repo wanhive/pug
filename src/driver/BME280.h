@@ -1,5 +1,5 @@
-/*
- * BME280.h
+/**
+ * @file BME280.h
  *
  * Copyright (C) 2023 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -60,6 +60,7 @@
 #define WH_DRIVER_BME280_H_
 #include "../physical/SMBus.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Sensor power modes.

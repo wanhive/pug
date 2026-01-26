@@ -1,5 +1,5 @@
-/*
- * TerminalConfig.h
+/**
+ * @file TerminalConfig.h
  *
  * Copyright (C) 2023 Amit Kumar (amitkriit@gmail.com)
  *
@@ -24,6 +24,7 @@
 #define WH_PHYSICAL_TERMINALCONFIG_H_
 #include <termios.h>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Possible terminal configuration modes

@@ -1,5 +1,5 @@
-/*
- * BME69x.h
+/**
+ * @file BME69x.h
  *
  * Copyright (C) 2025 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -60,6 +60,7 @@
 #define WH_DRIVER_BME69X_H_
 #include "../physical/SMBus.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Operating modes
@@ -292,11 +293,11 @@ private:
 	void writeRegisters(const unsigned char *commands,
 			const unsigned char *values, unsigned int length) const;
 public:
-	/* BME69X unique chip identifier */
+	/*! BME69X unique chip identifier */
 	static constexpr unsigned char CHIP_ID = (0x61);
-	/* BME69X lower I2C address */
+	/*! BME69X lower I2C address */
 	static constexpr unsigned char I2C_ADDR_LOW = (0x76);
-	/* BME69X higher I2C address */
+	/*! BME69X higher I2C address */
 	static constexpr unsigned char I2C_ADDR_HIGH = (0x77);
 private:
 	struct {

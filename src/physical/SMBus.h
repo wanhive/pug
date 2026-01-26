@@ -1,5 +1,5 @@
-/*
- * SMBus.h
+/**
+ * @file SMBus.h
  *
  * Copyright (C) 2023 Amit Kumar (amitkriit@gmail.com)
  *
@@ -24,6 +24,7 @@
 #define WH_PHYSICAL_SMBUS_H_
 #include "I2C.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * User space SMBus driver

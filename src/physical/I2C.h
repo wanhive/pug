@@ -1,5 +1,5 @@
-/*
- * I2C.h
+/**
+ * @file I2C.h
  *
  * Copyright (C) 2023 Amit Kumar (amitkriit@gmail.com)
  *
@@ -24,6 +24,7 @@
 #define WH_PHYSICAL_I2C_H_
 #include <wanhive/base/unix/File.h>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * I2C device properties
@@ -103,7 +104,7 @@ private:
 	void open(const char *path);
 	void open(const char *path, const I2CDevice &device);
 private:
-	unsigned long functions { 0 };
+	unsigned long functions { };
 };
 
 } /* namespace wanhive */

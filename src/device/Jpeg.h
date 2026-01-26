@@ -1,5 +1,5 @@
-/*
- * Jpeg.h
+/**
+ * @file Jpeg.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -24,6 +24,7 @@
 #define WH_DEVICE_JPEG_H_
 #include "Image.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Raw image to JPEG converter.
@@ -65,10 +66,10 @@ public:
 	static constexpr unsigned int QUALITY = 90;
 private:
 	struct {
-		unsigned char *data { nullptr };
-		unsigned long capacity { 0 };
-		unsigned long used { 0 };
-		unsigned int quality { 0 };
+		unsigned char *data { };
+		unsigned long capacity { };
+		unsigned long used { };
+		unsigned int quality { };
 	} control;
 };
 

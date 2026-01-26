@@ -1,5 +1,5 @@
-/*
- * GPS.h
+/**
+ * @file GPS.h
  *
  * Copyright (C) 2020 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -25,6 +25,7 @@
 #include "GeoLocation.h"
 #include <gps.h>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * GPS service daemon connection options.

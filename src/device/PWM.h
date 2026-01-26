@@ -1,5 +1,5 @@
-/*
- * PWM.h
+/**
+ * @file PWM.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -24,6 +24,7 @@
 #define WH_DEVICE_PWM_H_
 #include "../driver/PCA9685.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * PWM controller with a fixed output modulation frequency.

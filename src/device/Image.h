@@ -1,5 +1,5 @@
-/*
- * Image.h
+/**
+ * @file Image.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -23,6 +23,7 @@
 #ifndef WH_DEVICE_IMAGE_H_
 #define WH_DEVICE_IMAGE_H_
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Image data structure.

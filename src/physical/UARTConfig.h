@@ -1,5 +1,5 @@
-/*
- * UARTConfig.h
+/**
+ * @file UARTConfig.h
  *
  * Copyright (C) 2023 Amit Kumar (amitkriit@gmail.com)
  *
@@ -24,6 +24,7 @@
 #define WH_PHYSICAL_UARTCONFIG_H_
 #include <termios.h>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Possible data frame size in bits

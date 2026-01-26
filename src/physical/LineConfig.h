@@ -1,5 +1,5 @@
-/*
- * LineConfig.h
+/**
+ * @file LineConfig.h
  *
  * Copyright (C) 2023 Amit Kumar (amitkriit@gmail.com)
  *
@@ -23,6 +23,7 @@
 #ifndef WH_PHYSICAL_LINECONFIG_H_
 #define WH_PHYSICAL_LINECONFIG_H_
 
+/*! @namespace wanhive */
 namespace wanhive {
 
 /**

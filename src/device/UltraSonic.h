@@ -1,5 +1,5 @@
-/*
- * UltraSonic.h
+/**
+ * @file UltraSonic.h
  *
  * Copyright (C) 2025 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -25,6 +25,7 @@
 #include <wanhive/base/common/Source.h>
 #include <wanhive/base/ds/Mean.h>
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Ultrasonic sensor driver.

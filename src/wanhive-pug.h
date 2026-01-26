@@ -1,5 +1,5 @@
-/*
- * wanhive-pug.h
+/**
+ * @file wanhive-pug.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *

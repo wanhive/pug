@@ -1,5 +1,5 @@
-/*
- * BMI270.h
+/**
+ * @file BMI270.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -24,6 +24,7 @@
 #define WH_DRIVER_BMI270_H_
 #include "../physical/SMBus.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 
 /**
@@ -459,8 +460,7 @@ public:
 	static constexpr unsigned char CHIP_ID = 0x24;
 private:
 	struct {
-		/* Chip ID */
-		unsigned char chipId;
+		unsigned char chip;
 	} dev;
 };
 

@@ -1,5 +1,5 @@
-/*
- * all-headers.h
+/**
+ * @file all-headers.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *

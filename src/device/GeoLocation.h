@@ -1,5 +1,5 @@
-/*
- * GeoLocation.h
+/**
+ * @file GeoLocation.h
  *
  * Copyright (C) 2020 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -23,6 +23,7 @@
 #ifndef WH_DEVICE_GEOLOCATION_H_
 #define WH_DEVICE_GEOLOCATION_H_
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * Geo-location data structure.

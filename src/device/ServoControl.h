@@ -1,5 +1,5 @@
-/*
- * ServoControl.h
+/**
+ * @file ServoControl.h
  *
  * Copyright (C) 2025 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -23,6 +23,7 @@
 #ifndef WH_DEVICE_SERVOCONTROL_H_
 #define WH_DEVICE_SERVOCONTROL_H_
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * PWM control structure for servo motors.

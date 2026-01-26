@@ -1,5 +1,5 @@
-/*
- * MLX90640.h
+/**
+ * @file MLX90640.h
  *
  * Copyright (C) 2025 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -24,6 +24,7 @@
 #define WH_DRIVER_MLX90640_H_
 #include "MLX9064x.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 
 /**

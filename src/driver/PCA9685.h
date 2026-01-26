@@ -1,5 +1,5 @@
-/*
- * PCA9685.h
+/**
+ * @file PCA9685.h
  *
  * Copyright (C) 2024 Wanhive Systems Private Limited (info@wanhive.com)
  *
@@ -24,6 +24,7 @@
 #define WH_DRIVER_PCA9685_H_
 #include "../physical/SMBus.h"
 
+/*! @namespace wanhive */
 namespace wanhive {
 /**
  * User space PCA9685 driver.
@@ -138,29 +139,17 @@ public:
 private:
 	void setup() const;
 public:
-	/**
-	 * Default I2C address
-	 */
+	/*! Default I2C address */
 	static constexpr unsigned char I2C_ADDR = 0x40;
-	/**
-	 * The maximum PWM value (exclusive).
-	 */
+	/*! The maximum PWM value (exclusive) */
 	static constexpr unsigned int PWM_MAX = 4096;
-	/**
-	 * All pins selector.
-	 */
+	/*! All pins selector */
 	static constexpr unsigned int ALL_PIN = 16;
-	/**
-	 * Minimum allowed output modulation frequency (Hz).
-	 */
+	/*! Minimum allowed output modulation frequency (Hz) */
 	static constexpr unsigned int MIN_FREQUENCY = 40;
-	/**
-	 * Maximum allowed output modulation frequency (Hz).
-	 */
+	/*! Maximum allowed output modulation frequency (Hz) */
 	static constexpr unsigned int MAX_FREQUENCY = 1000;
-	/**
-	 * Internal oscillator's frequency.
-	 */
+	/*! Internal oscillator's frequency */
 	static constexpr unsigned int OSC_CLOCK = 25000000;
 };
 

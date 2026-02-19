@@ -24,7 +24,7 @@
  * This file incorporates work covered by the following copyright and
  * permission notice:
  *
- * Copyright (c) 2023 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -358,8 +358,6 @@ public:
 	static constexpr unsigned char I2C_ADDR_HIGH = (0x15);
 	/*! Chip id of BMM350 */
 	static constexpr unsigned char CHIP_ID = 0x33;
-	/*! Variant ID of BMM350 */
-	static constexpr unsigned char MIN_VARIANT = 0x10;
 	/*! Minimum pad drive strength */
 	static constexpr unsigned char PAD_DRIVE_WEAKEST = 0;
 	/*! Maximum pad drive strength (default) */
@@ -411,6 +409,7 @@ private:
 		unsigned char axes;
 		unsigned short otp[OTP_DATA_LENGTH];
 		BMM350Compensate compensate;
+		bool autoBR;
 	} dev;
 };
 

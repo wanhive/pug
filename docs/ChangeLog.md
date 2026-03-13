@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update the BMM350 sensor driver.
 
+### Fixed
+
+- Possible memory leak during frame buffer allocation in **ViewFinder**.
+
 ## [1.0.0] - 2026-01-26
 
 ### Added

@@ -45,7 +45,7 @@ bool ViewFinder::capture(RawImage &image) {
 	try {
 		libcamera::Request *request = nullptr;
 		if (queue.get(request)) {
-			auto status = _capture(request, image);
+			auto status = capture(request, image);
 			reuse(request);
 			return status;
 		} else {
@@ -61,7 +61,7 @@ bool ViewFinder::capture(Image &image) {
 	try {
 		libcamera::Request *request = nullptr;
 		if (queue.get(request)) {
-			auto status = _capture(request, image);
+			auto status = capture(request, image);
 			reuse(request);
 			return status;
 		} else {
@@ -76,7 +76,7 @@ bool ViewFinder::capture(Image &image, unsigned int quality) {
 	try {
 		libcamera::Request *request = nullptr;
 		if (queue.get(request)) {
-			auto status = _capture(request, image, quality);
+			auto status = capture(request, image, quality);
 			reuse(request);
 			return status;
 		} else {
@@ -87,7 +87,7 @@ bool ViewFinder::capture(Image &image, unsigned int quality) {
 	}
 }
 
-bool ViewFinder::_capture(libcamera::Request *request, RawImage &image) noexcept {
+bool ViewFinder::capture(libcamera::Request *request, RawImage &image) noexcept {
 	try {
 		/* Copy the mapped data */
 		const auto &data = mapped[request];
@@ -116,7 +116,7 @@ bool ViewFinder::_capture(libcamera::Request *request, RawImage &image) noexcept
 	}
 }
 
-bool ViewFinder::_capture(libcamera::Request *request, Image &image) noexcept {
+bool ViewFinder::capture(libcamera::Request *request, Image &image) noexcept {
 	try {
 		RawImage cap;
 		const auto &raw = mapped[request];
@@ -144,10 +144,10 @@ bool ViewFinder::_capture(libcamera::Request *request, Image &image) noexcept {
 	}
 }
 
-bool ViewFinder::_capture(libcamera::Request *request, Image &image,
+bool ViewFinder::capture(libcamera::Request *request, Image &image,
 		unsigned int quality) noexcept {
 	jpeg.setQuality(quality);
-	return _capture(request, image);
+	return capture(request, image);
 }
 
 void ViewFinder::setup(unsigned int height, unsigned int width) {
@@ -223,14 +223,7 @@ void ViewFinder::allocate() {
 				bytes += plane.length;
 			}
 
-			auto buf = mmap(nullptr, bytes, PROT_READ, MAP_SHARED,
-					firstPlane.fd.get(), 0);
-
-			if (!buf) {
-				throw SystemException();
-			} else {
-				mapped[request.get()] = { buf, bytes };
-			}
+			allocate(request.get(), firstPlane.fd.get(), bytes);
 			//-----------------------------------------------------------------
 			/* Put into the records */
 			requests.push_back(std::move(request));
@@ -286,6 +279,24 @@ void ViewFinder::clear() noexcept {
 
 	Memory<unsigned char>::free(captured.raw.data);
 	memset(&captured, 0, sizeof(captured));
+}
+
+void ViewFinder::allocate(libcamera::Request *request, int fd,
+		unsigned long bytes) {
+	void *buf { };
+	try {
+		buf = mmap(nullptr, bytes, PROT_READ, MAP_SHARED, fd, 0);
+		if (!buf) {
+			throw SystemException();
+		} else {
+			mapped[request] = { buf, bytes };
+		}
+	} catch (...) {
+		if (buf) {
+			munmap(buf, bytes);
+		}
+		throw;
+	}
 }
 
 void ViewFinder::provision(unsigned long capacity) {

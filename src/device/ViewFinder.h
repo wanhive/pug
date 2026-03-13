@@ -71,9 +71,9 @@ public:
 	 */
 	bool capture(Image &image, unsigned int quality);
 private:
-	bool _capture(libcamera::Request *request, RawImage &image) noexcept;
-	bool _capture(libcamera::Request *request, Image &image) noexcept;
-	bool _capture(libcamera::Request *request, Image &image,
+	bool capture(libcamera::Request *request, RawImage &image) noexcept;
+	bool capture(libcamera::Request *request, Image &image) noexcept;
+	bool capture(libcamera::Request *request, Image &image,
 			unsigned int quality) noexcept;
 	void setup(unsigned int height, unsigned int width);
 	void acquire();
@@ -82,6 +82,7 @@ private:
 	void process(libcamera::Request *request);
 	void reuse(libcamera::Request *request);
 	void clear() noexcept;
+	void allocate(libcamera::Request *request, int fd, unsigned long bytes);
 	void provision(unsigned long capacity);
 private:
 	std::unique_ptr<libcamera::CameraManager> cm;

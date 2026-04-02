@@ -993,8 +993,8 @@ void BMM350::updateOffsetAndSensitivity() {
 			/ 16384.0f;
 	dev.compensate.dut_tcs.tcs_y = fix_sign(tcs_y, BMM350_SIGNED_8_BIT)
 			/ 16384.0f;
-	dev.compensate.dut_tcs.tcs_z = (fix_sign(tcs_z, BMM350_SIGNED_8_BIT)
-			/ 16384.0f);
+	dev.compensate.dut_tcs.tcs_z = fix_sign(tcs_z, BMM350_SIGNED_8_BIT)
+			/ 16384.0f;
 
 	dev.compensate.dut_t0 = (fix_sign(dev.otp[BMM350_MAG_DUT_T_0],
 	BMM350_SIGNED_16_BIT) / 512.0f) + 23.0f;

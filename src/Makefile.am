@@ -17,9 +17,10 @@ WH_DRIV_SRCS = driver/ADS111x.cpp driver/BME280.cpp driver/BME68x.cpp \
 	driver/MLX90640.cpp driver/PCA9685.cpp
 
 ## src/device
-WH_DEVICE_HDRS = device/GeoLocation.h device/Gimbal.h device/GPS.h \
-	device/Image.h device/Jpeg.h device/LogBook.h device/PWM.h \
-	device/ServoControl.h device/UltraSonic.h device/ViewFinder.h
+WH_DEVICE_HDRS = device/AirQuality.h device/GeoLocation.h device/Gimbal.h \
+	device/GPS.h device/Image.h device/Jpeg.h device/LogBook.h \
+	device/Motion.h device/PWM.h device/ServoControl.h \
+	device/UltraSonic.h device/ViewFinder.h
 WH_DEVICE_SRCS = device/Gimbal.cpp device/GPS.cpp device/Jpeg.cpp \
 	device/LogBook.cpp device/PWM.cpp device/ServoControl.cpp \
 	device/UltraSonic.cpp device/ViewFinder.cpp

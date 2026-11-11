@@ -23,12 +23,14 @@
 #ifndef WH_PUG_ALL_HEADERS_H_
 #define WH_PUG_ALL_HEADERS_H_
 
+#include "device/AirQuality.h"
 #include "device/GeoLocation.h"
 #include "device/Gimbal.h"
 #include "device/GPS.h"
 #include "device/Image.h"
 #include "device/Jpeg.h"
 #include "device/LogBook.h"
+#include "device/Motion.h"
 #include "device/PWM.h"
 #include "device/ServoControl.h"
 #include "device/UltraSonic.h"

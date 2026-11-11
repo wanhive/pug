@@ -44,9 +44,11 @@
 /*
  * Peripherals (sensors and controllers)
  */
+#include "device/AirQuality.h"
 #include "device/Gimbal.h"
 #include "device/GPS.h"
 #include "device/LogBook.h"
+#include "device/Motion.h"
 #include "device/UltraSonic.h"
 #include "device/ViewFinder.h"
 
